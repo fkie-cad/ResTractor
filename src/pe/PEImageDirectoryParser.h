@@ -42,7 +42,7 @@ size_t PE_Rva2Foa(
 
 
 
-#include "idp/PEImageRessourceTable.h"
+#include "idp/PEImageResourceTable.h"
 
 
 
@@ -57,7 +57,7 @@ size_t PE_getDataDirectoryEntryFileOffset(PEDataDirectory* data_directory,
     uint32_t vaddr = table->VirtualAddress;
     uint32_t vsize = table->Size;
     size_t table_fo;
-    (label);
+//    (label);
 
     if ( vsize == 0 || vaddr == 0 )
     {

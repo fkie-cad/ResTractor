@@ -1,13 +1,14 @@
 #!/bin/bash
 
-name=headerParser
+name=resTractor
 def_target=${name}
-pos_targets="exe|lib|pck|cln"
+pos_targets="exe|pck|cln"
 target="exe"
 def_mode=Release
 mode=${def_mode}
 help=0
-debug_print=0
+debug_print=2
+error_print=0
 
 # Clean build directory from meta files
 #
@@ -45,18 +46,24 @@ function buildTarget() {
     local dir=$2
     local mode=$3
     local dp=$4
+    local ep=0
 
     if ! mkdir -p ${dir}; then
-        return 1
+        return -1
+    fi
+
+    if [[ $((dp & 2)) == 2 ]]; then
+        ep=1
+        dp=$((dp & ~dp))
     fi
 
     # if no space at -B..., older cmake (ubuntu 18) will not build
-    if ! cmake -S ${ROOT} -B${dir} -DCMAKE_BUILD_TYPE=${mode} -DDEBUG_PRINT=${dp}; then
-        return 2
+    if ! cmake -S ${ROOT} -B${dir} -DCMAKE_BUILD_TYPE=${mode} -DDEBUG_PRINT=${dp} -DERROR_PRINT=${ep}; then
+        return -2
     fi
 
     if ! cmake --build ${dir} --target ${target}; then
-        return 3
+        return -3
     fi
 
     # if [[ ${mode} == "Release" || ${mode} == "release" ]] && [[ ${target} == ${name} ]]; then
@@ -107,16 +114,19 @@ function printHelp() {
     return 0;
 }
 
-while getopts ":m:p:t:h" opt; do
+while getopts ":p:t:drh" opt; do
     case $opt in
     h)
         help=1
         ;;
-    m)
-        mode="$OPTARG"
+    d)
+        mode="Debug"
         ;;
     p)
         debug_print="$OPTARG"
+        ;;
+    r)
+        mode="Release"
         ;;
     t)
         target="$OPTARG"
@@ -158,14 +168,6 @@ elif [[ ${target} == "pck" ]]; then
 else
     if [[ ${target} == "exe" ]]; then
         target=${name}
-    elif [[ ${target} == "lib" ]]; then
-        target=${name}_so
-    elif [[ ${target} == "tlib" ]]; then
-        target=testHeaderParserLib
-    elif [[ ${target} == "tplib" ]]; then
-        target=testHeaderParserLibPE
-    elif [[ ${target} == "dirun" ]]; then
-        target=HPDirectoryRunner
     else
         exit $?
     fi

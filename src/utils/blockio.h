@@ -60,23 +60,6 @@ static uint8_t checkStandardBlockSpace(size_t* rel_offset,
                                        unsigned char* block_s,
                                        FILE* fp);
 
-/**
- * Check space left in large block, depending on offset and needed size.
- * If data.block_main is too small, read in new bytes into data.block_sub.
- * abs_file_offset is not adjusted.
- *
- * @param rel_offset size_t*
- * @param abs_offset size_t*
- * @param needed  uint16_t
- * @param block_s unsigned char[BLOCKSIZE_SMALL]
- * @param file_name const char*
- * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: data.block_sub filled.
- */
-static size_t readStandardBlockIfLargeBlockIsExceeded(size_t rel_offset,
-                                                       size_t abs_offset,
-                                                       size_t needed,
-                                                       unsigned char* block_s,
-                                                       FILE* fp);
 
 
 

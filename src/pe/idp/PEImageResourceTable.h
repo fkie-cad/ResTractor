@@ -16,7 +16,7 @@ typedef struct _NAME {
 size_t res_count = 0;
 size_t file_count = 0;
 
-void PE_parseImageResourceTable(
+int PE_parseImageResourceTable(
     PE64OptHeader* oh,
     uint16_t nr_of_sections,
     PGlobalParams gp,
@@ -118,7 +118,7 @@ char* getFileType(
  * @param oh
  * @param nr_of_sections
  */
-void PE_parseImageResourceTable(
+int PE_parseImageResourceTable(
     PE64OptHeader* oh,
     uint16_t nr_of_sections,
     PGlobalParams gp,
@@ -127,7 +127,7 @@ void PE_parseImageResourceTable(
 {
     PE_IMAGE_RESOURCE_DIRECTORY rd;
     size_t table_fo;
-    int s;
+    int s = 0;
     
     size_t start_file_offset = gp->file.start_offset;
     size_t file_size = gp->file.size;
@@ -135,26 +135,27 @@ void PE_parseImageResourceTable(
     
     uint8_t* block_s = gp->data.block_sub;
 
-    NAME res_base_name = {0};
-    res_base_name.MaxSize = PATH_MAX;
+//    NAME res_base_name = {0};
+//    res_base_name.MaxSize = PATH_MAX;
 
     
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_RESOURCE )
     {
         EPrint("Data Directory too small for RESOURCE entry!\n");
-        return;
+        return -1;
     }
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_RESOURCE, nr_of_sections, "Resource", svas);
     if ( table_fo == 0 )
     {
-        return;
+        printf("No resource table found!\n");
+        return -2;
     }
 
     // fill root PE_IMAGE_RESOURCE_DIRECTORY info
     s = PE_fillImageResourceDirectory(&rd, table_fo, start_file_offset, file_size, fp, block_s);
     if ( s != 0 )
-        return;
+        return s;
     
 #ifdef DEBUG_PRINT
     PE_printImageResourceDirectory(&rd, table_fo, 0);
@@ -183,8 +184,10 @@ void PE_parseImageResourceTable(
         nr_of_sections
     );
 
-    printf("res_count: %zx\n", res_count);
-    printf("file_count: %zx\n", file_count);
+    printf("Resource count: 0x%zx\n", res_count);
+    printf("File count: 0x%zx\n", file_count);
+
+    return s;
 }
 
 int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
@@ -400,7 +403,7 @@ int PE_fillImageResourceDirectoryEntry(
     uint8_t* ptr = NULL;
     size_t size;
 
-    (table_fo);
+//    (table_fo);
 
     if ( !checkFileSpace(offset, start_file_offset, PE_RESOURCE_ENTRY_SIZE, file_size))
         return -1;
@@ -574,7 +577,7 @@ int PE_parseResourceDirectoryEntryI(
     rdid.ResName.MaxSize = res_base_name->MaxSize;
     if ( re.NAME_UNION.NAME_STRUCT.NameIsString )
     {
-        if ( rdid.ResName.Length < rdid.ResName.MaxSize - 5 );
+        if ( rdid.ResName.Length + 10 < rdid.ResName.MaxSize )
         {
             sprintf(rdid.ResName.Buffer, "%s%08x.", res_base_name->Buffer, re.NAME_UNION.NAME_STRUCT.NameOffset);
             rdid.ResName.Length += 5;
@@ -582,7 +585,7 @@ int PE_parseResourceDirectoryEntryI(
     }
     else
     {
-        if ( rdid.ResName.Length < rdid.ResName.MaxSize - 3 );
+        if ( rdid.ResName.Length + 5 < rdid.ResName.MaxSize )
         {
             sprintf(rdid.ResName.Buffer, "%s%04x.", res_base_name->Buffer, re.NAME_UNION.Id);
             rdid.ResName.Length += 3;

@@ -31,7 +31,7 @@ bool Fifo_clear(PFifo fifo)
         free(tmp);
     }
     
-    memset(fifo, 0, sizeof(fifo));
+    memset(fifo, 0, sizeof(*fifo));
 
     return true;
 }
@@ -132,7 +132,7 @@ void Fifo_print(PFifo fifo)
 void FifoEntry_print(PFifoEntry e)
 {
     size_t i;
-    printf("{next: 0x%p, data: {size: 0x%zu, bytes: ", e->next, e->data.size);
+    printf("{next: 0x%p, data: {size: 0x%zu, bytes: ", (void*)e->next, e->data.size);
     for (i = 0; i < e->data.size; i++)
         printf("%02x|", e->data.bytes[i]);
     printf("}");

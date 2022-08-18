@@ -1,7 +1,6 @@
 #ifndef PRINT_H
 #define PRINT_H
 
-
 #ifdef DEBUG_PRINT
 #define DPrint(...) printf("[d] "); printf(__VA_ARGS__);
 #define FPrint() printf("[f] %s\n", __FUNCTION__);

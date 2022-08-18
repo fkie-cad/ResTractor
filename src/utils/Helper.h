@@ -59,9 +59,14 @@ void expandFilePath(const char* src, char* dest)
     {
         char cwd[PATH_MAX] = {0};
         if ( getcwd(cwd, PATH_MAX) != NULL )
-            snprintf(dest, PATH_MAX, "%s/%s", cwd, src);
+        {
+            if ( strlen(cwd) + strlen(src) + 2 < PATH_MAX )
+                sprintf(dest, "%s/%s", cwd, src);
+        }
         else
+        {
             snprintf(dest, PATH_MAX, "%s", src);
+        }
     }
     else
 #endif
@@ -176,7 +181,7 @@ void printFlag64(uint64_t present, uint64_t expected, const char* label)
  */
 char* fillOffset(size_t rel_offset, size_t abs_offset, size_t file_offset)
 {
-    (rel_offset);(abs_offset);(file_offset);
+//    (rel_offset);(abs_offset);(file_offset);
     return offset_buffer;
 }
 

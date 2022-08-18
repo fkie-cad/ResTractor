@@ -28,6 +28,7 @@ int isPE(
 void parseHeader(PHeaderData hd, PGlobalParams gp)
 {
     size_t n;
+    int s = 0;
 
     n = readFile(gp->file.handle, gp->file.abs_offset, BLOCKSIZE_LARGE, gp->data.block_main);
     if ( !n )
@@ -43,7 +44,15 @@ void parseHeader(PHeaderData hd, PGlobalParams gp)
     }
     else if ( isPE(gp->data.block_main) )
     {
-        parsePEHeaderData(hd, gp);
+        s = parsePEHeaderData(hd, gp);
+        if ( s != 0 )
+        {
+            EPrint("parsing PE header failed!\n");
+        }
+    }
+    else
+    {
+        printf("Not PE file!\n");
     }
 }
 

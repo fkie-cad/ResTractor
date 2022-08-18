@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <inttypes.h>
+//#include <inttypes.h>
 
 #define VERBOSE_MODE 1
 
@@ -12,14 +12,14 @@
 #include "warnings.h"
 #endif
 #include "print.h"
-#include "utils/env.h"
-#include "errorCodes.h"
+//#include "utils/env.h"
+//#include "errorCodes.h"
 #include "Globals.h"
 
 #include "utils/Converter.h"
 #include "utils/common_fileio.h"
 #include "utils/Files.h"
-#include "utils/blockio.h"
+//#include "utils/blockio.h"
 #include "utils/Helper.h"
 
 #include "parser.h"
@@ -66,8 +66,8 @@ __cdecl
 #endif
 main(int argc, char** argv)
 {
-    size_t n = 0;
-    int errsv = 0;
+//    size_t n = 0;
+    int errsv;
     char file_name[PATH_MAX];
 
     HeaderData* hd = NULL;
@@ -88,7 +88,7 @@ main(int argc, char** argv)
     if ( isCallForHelp(argv[1]) )
     {
         printHelp();
-        return 1;
+        return 0;
     }
 
     if ( parseArgs(argc, argv, &gp, file_name) != 0 )
@@ -100,7 +100,7 @@ main(int argc, char** argv)
     if ( gp.file.handle == NULL)
     {
         EPrint("Could not open file: \"%s\" (0x%x)\n", file_name, errsv);
-        return -1;
+        return errsv;
     }
 
     gp.file.size = getSizeFP(gp.file.handle);
@@ -159,7 +159,7 @@ int initGpData(PGlobalParams gp)
     {
         s = (errsv!=0)?errsv:-1;
         EPrint("No memory for block main! (0x%x)\n", s);
-        return -1;
+        return s;
     }
 
     gp->data.block_sub_size = BLOCKSIZE_SMALL;
@@ -170,7 +170,7 @@ int initGpData(PGlobalParams gp)
     {
         s = (errsv!=0)?errsv:-1;
         EPrint("No memory for block sub! (0x%x)\n", s);
-        return -1;
+        return s;
     }
 
     return s;
@@ -183,10 +183,10 @@ int cleanGpData(PGlobalParams gp)
     if ( gp->data.block_main )
         free(gp->data.block_main);
 
-    if ( !gp->data.block_sub )
+    if ( gp->data.block_sub )
         free(gp->data.block_sub);
 
-    memset(gp, 0, sizeof(*gp));
+    memset(&gp->data, 0, sizeof(gp->data));
 
     return s;
 }
@@ -295,7 +295,7 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, char* file_name)
 
 void sanitizeArgs(PGlobalParams gp)
 {
-    (gp);
+//    (gp);
 }
 
 uint8_t isArgOfType(const char* arg, char* type)
@@ -317,7 +317,7 @@ uint8_t isArgOfType(const char* arg, char* type)
 
 uint8_t hasValue(char* type, int i, int end_i)
 {
-    (type);
+//    (type);
     if ( i >= end_i - 1 )
     {
         IPrint("Arg \"%s\" has no value! Skipped!\n", type);

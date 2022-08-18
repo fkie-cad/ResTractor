@@ -67,7 +67,7 @@ static uint8_t PE_readOptionalHeader(size_t offset,
                                      unsigned char* block_l);
 static void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
                                            PHeaderData hd);
-static void PE_readSectionHeader(
+static int PE_readSectionHeader(
     size_t header_start,
     PECoffFileHeader* ch,
     PGlobalParams gp,
@@ -111,6 +111,8 @@ int parsePEHeaderData(
     PGlobalParams gp
 )
 {
+    int s = 0;
+
     PEHeaderData pehd;
     PEImageDosHeader image_dos_header_l;
     PECoffFileHeader coff_header_l;
@@ -127,11 +129,11 @@ int parsePEHeaderData(
     pehd.opt_header = &opt_header_l;
     pehd.hd = hd;
 
-    parsePEHeader(&pehd, hd, gp);
+    s = parsePEHeader(&pehd, hd, gp);
 
     PE_cleanUp(&pehd);
 
-    return 0;
+    return s;
 }
 
 /**
@@ -176,16 +178,7 @@ int parsePEHeader(
     );
     if ( pe_header_type != 1 )
     {
-//        DPrint("No valid PE00 section signature found!\n");
-        if ( pe_header_type == 2 )
-            hd->headertype = HEADER_TYPE_NE;
-        else if ( pe_header_type == 3 )
-            hd->headertype = HEADER_TYPE_LE;
-        else if ( pe_header_type == 4 )
-            hd->headertype = HEADER_TYPE_LX;
-        else
-            hd->headertype = HEADER_TYPE_MS_DOS;
-
+        EPrint("No valid PE00 section signature found!\n");
         return -4;
     }
 
@@ -208,7 +201,7 @@ int parsePEHeader(
     PE_fillHeaderDataWithOptHeader(opt_header, hd);
 
     section_header_offset = (size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE + coff_header->SizeOfOptionalHeader;
-    PE_readSectionHeader(
+    s = PE_readSectionHeader(
         section_header_offset, 
         coff_header, 
         gp,
@@ -217,16 +210,21 @@ int parsePEHeader(
         &pehd->svas, 
         hd
     );
+    if ( s != 0 )
+    {
+        EPrint("reading section header failed! (0x%x)\n", s);
+        return s;
+    }
 
 
-    PE_parseImageResourceTable(
+    s = PE_parseImageResourceTable(
         opt_header, 
         coff_header->NumberOfSections, 
         gp, 
         pehd->svas
     );
 
-    return 0;
+    return s;
 }
 
 int PE_readImageDosHeader(PEImageDosHeader* idh,
@@ -587,7 +585,7 @@ void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
  * @param ch
  * @param finame
  */
-void PE_readSectionHeader(size_t header_start,
+int PE_readSectionHeader(size_t header_start,
                           PECoffFileHeader* ch,
                           PGlobalParams gp,
                           PStringTable st,
@@ -598,7 +596,7 @@ void PE_readSectionHeader(size_t header_start,
     unsigned char *ptr = NULL;
     size_t offset;
     PEImageSectionHeader s_header;
-    CodeRegionData code_region_data;
+//    CodeRegionData code_region_data;
     uint16_t nr_of_sections = ch->NumberOfSections;
     uint16_t i = 0;
     size_t size;
@@ -617,17 +615,17 @@ void PE_readSectionHeader(size_t header_start,
         if ( *svas == NULL )
         {
             EPrint("ERROR (0x%x): Alloc failed!\n", errno);
-            return;
+            return -1;
         }
     }
     // read new large block to ease up offsetting
     if ( !checkFileSpace(header_start, start_file_offset, PE_SECTION_HEADER_SIZE, file_size) )
-        return;
+        return -2;
 
     abs_file_offset = header_start + start_file_offset;
     size = readFile(fp, abs_file_offset, BLOCKSIZE_LARGE, block_m);
     if ( size == 0 )
-        return;
+        return -3;
     offset = 0;
     
     for ( i = 0; i < nr_of_sections; i++ )
@@ -635,7 +633,7 @@ void PE_readSectionHeader(size_t header_start,
 //        DPrint(" - %u / %u\n", (i+1), nr_of_sections);
 
         if ( !checkFileSpace(offset, abs_file_offset, PE_SECTION_HEADER_SIZE, file_size) )
-            return;
+            return -4;
 
         if ( !checkLargeBlockSpace(&offset, &abs_file_offset, PE_SECTION_HEADER_SIZE, block_m, fp) )
             break;
@@ -661,6 +659,8 @@ void PE_readSectionHeader(size_t header_start,
     }
     
     gp->file.abs_offset = abs_file_offset;
+
+    return 0;
 }
 
 void PE_fillSectionHeader(const unsigned char* ptr,

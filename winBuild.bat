@@ -14,8 +14,11 @@ set platform=x64
 set /a debug=0
 set /a release=0
 
+set /a DP_FLAG=1
+set /a EP_FLAG=2
+
 set /a rtl=0
-set /a dp=0
+set /a dp=%EP_FLAG%
 set /a pdb=0
 set verbose=0
 
@@ -193,7 +196,14 @@ GOTO :ParseParams
         ) else (
             if %release% EQU 1 set conf=Release
         )
-        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%conf% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp%  & exit"
+
+        set /a "ep=%dp%&EP_FLAG"
+        if not %ep% EQU 0 (
+            set /a ep=1
+        )
+        set /a "dp=%dp%&~EP_FLAG"
+
+        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%conf% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct% /p:DebugPrint=%dp% /p:ErrorPrint=%ep% & exit"
 
     endlocal
     exit /B %errorlevel%
@@ -217,7 +227,7 @@ GOTO :ParseParams
     echo /pdb Include pdb symbols into release build. Default in debug mode. 
     echo /bt Custom path to Microsoft Visual Studio BuildTools.
     echo /pts Platformtoolset. Defaults to "v142".
-    echo /dp Debug print value. 1: Debug print.
+    echo /dp Debug print value. 1: Debug print flag, 2: Error print flag.
     echo.
     echo /v more verbose output
     echo /h print this
