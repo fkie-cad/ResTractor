@@ -136,6 +136,12 @@
       <PreprocessorDefinitions>DEBUG_PRINT=$(DebugPrint);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
+  
+  <ItemDefinitionGroup Condition="'$(ErrorPrint)'!='0' And '$(ErrorPrint)'!=''">
+    <ClCompile>
+      <PreprocessorDefinitions>ERROR_PRINT=$(Error);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
 
   <ItemGroup Condition="'$(ConfigurationType)'=='Application'">
     <ClCompile Include="src\resTractor.c" />

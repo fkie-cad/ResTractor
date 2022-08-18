@@ -27,7 +27,7 @@
 
 #define BIN_NAME "ResTractor"
 #define BIN_VS "1.0.0"
-#define BIN_DATE "17.08.2022"
+#define BIN_DATE "18.08.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -54,8 +54,9 @@ static int parseArgs(
     PGlobalParams gp,
     char* file_name
     );
-static void sanitizeArgs(PGlobalParams gp);
+
 static uint8_t isArgOfType(const char* arg, char* type);
+
 static uint8_t hasValue(char* type, int i, int end_i);
 
 
@@ -110,8 +111,6 @@ main(int argc, char** argv)
         s = -2;
         goto exit;
     }
-
-    sanitizeArgs(&gp);
 
     DPrint("file_name: %s\n", file_name);
     DPrint("abs_file_offset: 0x%zx\n", gp.file.abs_offset);
@@ -293,11 +292,6 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, char* file_name)
     return s;
 }
 
-void sanitizeArgs(PGlobalParams gp)
-{
-//    (gp);
-}
-
 uint8_t isArgOfType(const char* arg, char* type)
 {
     size_t i;
@@ -317,7 +311,7 @@ uint8_t isArgOfType(const char* arg, char* type)
 
 uint8_t hasValue(char* type, int i, int end_i)
 {
-//    (type);
+    (type);
     if ( i >= end_i - 1 )
     {
         IPrint("Arg \"%s\" has no value! Skipped!\n", type);

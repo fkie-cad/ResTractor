@@ -24,7 +24,6 @@ void printFlag16(uint16_t present, uint16_t expected, const char* label);
 void printFlag32(uint32_t present, uint32_t expected, const char* label);
 void printFlag32F(uint32_t present, uint32_t expected, const char* label, const char* pre, const char post);
 void printFlag64(uint64_t present, uint64_t expected, const char* label);
-char* fillOffset(size_t rel_offset, size_t abs_offset, size_t file_offset);
 uint8_t isMemZero(void* mem, size_t n);
 
 char offset_buffer[256];
@@ -169,20 +168,6 @@ void printFlag64(uint64_t present, uint64_t expected, const char* label)
 {
     if ( hasFlag64(present, expected) )
         printf(" %s |", label);
-}
-
-/**
- * Fill up file offset value of value for printing.
- * 
- * @param rel_offset 
- * @param abs_offset 
- * @param file_offset 
- * @return 
- */
-char* fillOffset(size_t rel_offset, size_t abs_offset, size_t file_offset)
-{
-//    (rel_offset);(abs_offset);(file_offset);
-    return offset_buffer;
 }
 
 uint8_t isMemZero(void* mem, size_t n)

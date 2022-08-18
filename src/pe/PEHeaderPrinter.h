@@ -24,7 +24,6 @@ void PE_printImageResourceDirectoryEntryHeader(
 );
 void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
                                          size_t table_fo,
-                                         size_t offset,
                                          uint16_t level,
                                          uint16_t id,
                                          uint16_t n,
@@ -55,7 +54,8 @@ void fillSpaces(char* buf, size_t n, uint16_t level)
 //		buf[i*2+2] = ' ';
 //	}
 }
-void PE_printImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, size_t offset, uint16_t level)
+
+void PE_printImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, uint16_t level)
 {
     char spaces[MAX_SPACES];
     fillSpaces(spaces, MAX_SPACES, level);
@@ -65,7 +65,7 @@ void PE_printImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, size_
     if (rd->TimeDateStamp != (uint32_t)-1)
         formatTimeStampD(rd->TimeDateStamp, date, sizeof(date));
 
-    printf("%sResource Directory%s:\n", spaces, fillOffset(0, offset, 0));
+    printf("%sResource Directory:\n", spaces);
     printf("%s- Characteristics: 0x%x\n", spaces, rd->Characteristics);
     printf("%s- TimeDateStamp: %s (0x%x)\n", spaces, date, rd->TimeDateStamp);
     printf("%s- MajorVersion: %u\n", spaces, rd->MajorVersion);
@@ -88,7 +88,6 @@ void PE_printImageResourceDirectoryEntryHeader(int type, uint16_t n, uint16_t le
 void PE_printImageResourceDirectoryEntry(
     const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
     size_t table_fo,
-    size_t offset,
     uint16_t level,
     uint16_t id,
     uint16_t n,
@@ -108,7 +107,7 @@ void PE_printImageResourceDirectoryEntry(
     char spaces[MAX_SPACES];
     fillSpaces(spaces, MAX_SPACES, level);
     
-    printf("%s  %u/%u%s:\n", spaces, (id+1), n, fillOffset(0, offset, 0));
+    printf("%s  %u/%u:\n", spaces, (id+1), n);
     
     if ( re->NAME_UNION.NAME_STRUCT.NameIsString )
     {
@@ -159,14 +158,13 @@ void PE_printImageResourceDirectoryEntry(
 void PE_printImageResourceDataEntry(
     const PE_IMAGE_RESOURCE_DATA_ENTRY* de, 
     uint32_t fotd, 
-    size_t offset, 
     uint16_t level
 )
 {
     char spaces[MAX_SPACES];
     fillSpaces(spaces, MAX_SPACES, level);
     
-    printf("%s  - ResourceDataEntry%s:\n", spaces, fillOffset(0, offset, 0));
+    printf("%s  - ResourceDataEntry:\n", spaces);
     //printf("%s    - OffsetToData rva: 0x%x, fo: 0x%x\n", spaces, de->OffsetToData, fotd);
     //printf("%s    - OffsetToData: 0x%x (rva), 0x%x (fo)\n", spaces, de->OffsetToData, fotd);
     printf("%s    - OffsetToData\n", spaces);

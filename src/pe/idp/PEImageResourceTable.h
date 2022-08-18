@@ -82,7 +82,6 @@ int PE_parseResourceDirectoryEntryI(
 int PE_fillImageResourceDirectoryEntry(
     PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
     size_t offset,
-    size_t table_fo,
     size_t start_file_offset,
     size_t file_size,
     FILE* fp,
@@ -99,7 +98,6 @@ int PE_fillImageResourceDataEntry(
 );
 
 void PE_saveResource(
-    PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
     const PE_IMAGE_RESOURCE_DATA_ENTRY* de, 
     uint32_t fo, 
     PGlobalParams gp,
@@ -158,7 +156,7 @@ int PE_parseImageResourceTable(
         return s;
     
 #ifdef DEBUG_PRINT
-    PE_printImageResourceDirectory(&rd, table_fo, 0);
+    PE_printImageResourceDirectory(&rd, 0);
 #endif
 
     //PE_recurseImageResourceDirectory(
@@ -324,11 +322,11 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
 //
 //    uint8_t* block_s = gp->data.block_sub;
 //    
-//    s = PE_fillImageResourceDirectoryEntry(&re, offset, table_fo, start_file_offset, file_size, fp, block_s);
+//    s = PE_fillImageResourceDirectoryEntry(&re, offset, start_file_offset, file_size, fp, block_s);
 //    if ( s != 0 ) 
 //        return s;
 //
-//    PE_printImageResourceDirectoryEntry(&re, table_fo, offset, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
+//    PE_printImageResourceDirectoryEntry(&re, table_fo, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
 //
 //    dir_offset = table_fo + re.OFFSET_UNION.DATA_STRUCT.OffsetToDirectory;
 //    if ( dir_offset > file_size )
@@ -359,7 +357,7 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
 //        s = PE_fillImageResourceDirectory(&rd, dir_offset, start_file_offset, file_size, fp, block_s);
 //        if ( s != 0 )
 //            return -2;
-//        PE_printImageResourceDirectory(&rd, dir_offset, level+1);
+//        PE_printImageResourceDirectory(&rd, level+1);
 //
 //        dir_offset = (size_t)dir_offset + PE_RESOURCE_DIRECTORY_SIZE;
 //        if ( dir_offset > file_size )
@@ -392,7 +390,6 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
 int PE_fillImageResourceDirectoryEntry(
     PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
     size_t offset,
-    size_t table_fo,
     size_t start_file_offset,
     size_t file_size,
     FILE* fp,
@@ -402,8 +399,6 @@ int PE_fillImageResourceDirectoryEntry(
     struct Pe_Image_Resource_Directory_Entry_Offsets entry_offsets = PeImageResourceDirectoryEntryOffsets;
     uint8_t* ptr = NULL;
     size_t size;
-
-//    (table_fo);
 
     if ( !checkFileSpace(offset, start_file_offset, PE_RESOURCE_ENTRY_SIZE, file_size))
         return -1;
@@ -561,9 +556,11 @@ int PE_parseResourceDirectoryEntryI(
     FILE* fp = gp->file.handle; 
     uint8_t* block_s = gp->data.block_sub;
 
-    PE_fillImageResourceDirectoryEntry(&re, offset, table_fo, start_file_offset, file_size, fp, block_s);
+    (id);(nr_of_entries);
+
+    PE_fillImageResourceDirectoryEntry(&re, offset, start_file_offset, file_size, fp, block_s);
 #ifdef DEBUG_PRINT
-    PE_printImageResourceDirectoryEntry(&re, table_fo, offset, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
+    PE_printImageResourceDirectoryEntry(&re, table_fo, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
 #endif
     
     //memset(&rdid, 0, sizeof(rdid));
@@ -603,7 +600,7 @@ int PE_parseResourceDirectoryEntryI(
         if ( s != 0 )
             return 1;
 #ifdef DEBUG_PRINT
-        PE_printImageResourceDirectory(&rd, dir_offset, level+1);
+        PE_printImageResourceDirectory(&rd, level+1);
 #endif
         rdid.Offset = (size_t)dir_offset + PE_RESOURCE_DIRECTORY_SIZE;
         rdid.NumberOfNamedEntries = rd.NumberOfNamedEntries;
@@ -621,13 +618,13 @@ int PE_parseResourceDirectoryEntryI(
         fotd = (uint32_t)PE_Rva2Foa(de.OffsetToData, svas, nr_of_sections);
         fotd += (uint32_t)start_file_offset;
 #ifdef DEBUG_PRINT
-        PE_printImageResourceDataEntry(&de, fotd, dir_offset, level);
+        PE_printImageResourceDataEntry(&de, fotd, level);
 #endif
         
         res_count++;
 
         //printf("final res base name: %s\n", rdid.ResName.Buffer);
-        PE_saveResource(&re, &de, fotd, gp, &rdid.ResName);
+        PE_saveResource(&de, fotd, gp, &rdid.ResName);
     }
 
     return 0;
@@ -635,7 +632,6 @@ int PE_parseResourceDirectoryEntryI(
 
 
 void PE_saveResource(
-    PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
     const PE_IMAGE_RESOURCE_DATA_ENTRY* de, 
     uint32_t fo, 
     PGlobalParams gp,

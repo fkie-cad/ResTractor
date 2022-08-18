@@ -56,8 +56,12 @@ static uint8_t PE_readCoffHeader(size_t offset,
                                  size_t file_size,
                                  FILE* fp,
                                  unsigned char* block_l);
-static unsigned char PE_checkCoffHeader(const PECoffFileHeader* ch,
-                                        PHeaderData hd);
+
+static unsigned char PE_checkCoffHeader(
+    const PECoffFileHeader* ch,
+    PHeaderData hd
+);
+
 static uint8_t PE_readOptionalHeader(size_t offset,
                                      PE64OptHeader* oh,
                                      size_t start_file_offset,
@@ -71,10 +75,8 @@ static int PE_readSectionHeader(
     size_t header_start,
     PECoffFileHeader* ch,
     PGlobalParams gp,
-    PStringTable st,
     int parse_svas,
-    SVAS** svas,
-    PHeaderData hd
+    SVAS** svas
 );
 static void PE_fillSectionHeader(const unsigned char* ptr, PEImageSectionHeader* sh);
 static int PE_isNullSectionHeader(const PEImageSectionHeader* sh);
@@ -205,10 +207,8 @@ int parsePEHeader(
         section_header_offset, 
         coff_header, 
         gp,
-        &pehd->st, 
         parse_svas, 
-        &pehd->svas, 
-        hd
+        &pehd->svas
     );
     if ( s != 0 )
     {
@@ -375,11 +375,14 @@ uint8_t PE_readCoffHeader(size_t offset,
     return 0;
 }
 
-unsigned char PE_checkCoffHeader(const PECoffFileHeader *ch,
-                                 PHeaderData hd)
+unsigned char PE_checkCoffHeader(
+    const PECoffFileHeader *ch,
+    PHeaderData hd
+)
 {
 //    DPrint("checkCoffHeader()\n");
     unsigned char valid = 1;
+    (ch);
 //	char errors[ERRORS_BUFFER_SIZE] = {0};
 //	uint16_t offset = 0;
 
@@ -588,10 +591,8 @@ void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
 int PE_readSectionHeader(size_t header_start,
                           PECoffFileHeader* ch,
                           PGlobalParams gp,
-                          PStringTable st,
                           int parse_svas,
-                          SVAS** svas,
-                          PHeaderData hd)
+                          SVAS** svas)
 {
     unsigned char *ptr = NULL;
     size_t offset;

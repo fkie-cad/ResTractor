@@ -8,9 +8,8 @@ Some types are recognized and will be given a different type.
 - XML files are typed `.xml`
 - VS Version Info files are typed `.vsi`
 
-The source is deduced from the famous `HeaderParser`
-
-The linux build is not yet tested.
+The source is deduced from the famous `HeaderParser`.
+Some cleaning may be done sometime.
 
 
 POSIX compliant.  
@@ -24,7 +23,7 @@ Compiles and runs under
 
 ## Version ##
 1.0.0  
-Last changed: 17.08.2022
+Last changed: 18.08.2022
 
 ## REQUIREMENTS ##
 - Linux
@@ -34,12 +33,12 @@ Last changed: 17.08.2022
    - msbuild
 
 ## BUILD ##
-### Linux (gcc) & cmake [not tested yet]
+### Linux (gcc) & cmake
 ```bash
 $ ./linuxBuild.sh [-t exe] [-m Release|Debug] [-h]  
 ```
 
-### Linux (gcc) [not tested yet]
+### Linux (gcc)
 ```bash
 $ mkdir build
 $ gcc -o build/resTractor -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/resTractor.c  
