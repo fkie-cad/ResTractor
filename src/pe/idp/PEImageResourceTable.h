@@ -32,30 +32,6 @@ int PE_fillImageResourceDirectory(
     uint8_t* block_s
 );
 
-//int PE_recurseImageResourceDirectory(
-//    size_t offset,
-//    size_t table_fo,
-//    uint16_t nr_of_named_entries,
-//    uint16_t nr_of_id_entries,
-//    uint16_t level,
-//    PGlobalParams gp,
-//    SVAS* svas,
-//    uint16_t nr_of_sections,
-//    PNAME res_base_name
-//);
-
-//int PE_parseResourceDirectoryEntry(
-//    uint16_t id, 
-//    size_t offset, 
-//    size_t table_fo, 
-//    uint16_t nr_of_entries, 
-//    uint16_t level,
-//    PGlobalParams gp,
-//    SVAS* svas,
-//    uint16_t nr_of_sections,
-//    PNAME res_base_name
-//);
-
 int PE_iterateImageResourceDirectory(
     size_t offset,
     size_t table_fo,
@@ -140,10 +116,6 @@ int PE_parseImageResourceTable(
     
     uint8_t* block_s = gp->data.block_sub;
 
-//    NAME res_base_name = {0};
-//    res_base_name.MaxSize = PATH_MAX;
-
-    
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_RESOURCE )
     {
         EPrint("Data Directory too small for RESOURCE entry!\n");
@@ -166,18 +138,6 @@ int PE_parseImageResourceTable(
     PE_printImageResourceDirectory(&rd, 0);
 #endif
 
-    //PE_recurseImageResourceDirectory(
-    //    table_fo + PE_RESOURCE_DIRECTORY_SIZE, 
-    //    table_fo, 
-    //    rd.NumberOfNamedEntries,
-    //    rd.NumberOfIdEntries, 
-    //    0, 
-    //    gp, 
-    //    svas, 
-    //    nr_of_sections,
-    //    &res_base_name
-    //);
-    
     s = PE_iterateImageResourceDirectory(
         table_fo + PE_RESOURCE_DIRECTORY_SIZE,
         table_fo,
@@ -230,169 +190,6 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
 
     return 0;
 }
-
-//int PE_recurseImageResourceDirectory(
-//    size_t offset,
-//    size_t table_fo,
-//    uint16_t nr_of_named_entries,
-//    uint16_t nr_of_id_entries,
-//    uint16_t level,
-//    PGlobalParams gp,
-//    SVAS* svas,
-//    uint16_t nr_of_sections,
-//    PNAME res_base_name
-//)
-//{
-//    uint16_t i;
-//    int s;
-//
-//    if ( level >= PE_MAX_RES_DIR_LEVEL )
-//    {
-//        EPrint("Maximum ressource directory level reached!\n");
-//        return -1;
-//    }
-//    DPrint("offset: 0x%zx\n", offset);
-//    DPrint("table_fo: 0x%zx\n", table_fo);
-//    DPrint("file_size: 0x%zx\n", gp->file.size);
-//    DPrint("level: 0x%x\n", level);
-//
-//    //PE_printImageResourceDirectoryEntryHeader(0, nr_of_named_entries, level);
-//    for ( i = 0; i < nr_of_named_entries; i++)
-//    {
-//        if ( level == 0 )
-//        {
-//            res_base_name->Length = 0;
-//            res_base_name->Buffer[0] = 0;
-//        }
-//
-//        s = PE_parseResourceDirectoryEntry(i, offset, table_fo, nr_of_named_entries, level, gp, svas, nr_of_sections, res_base_name);
-//        // break on error or try next ??
-//        if ( s != 0 )
-//            break;
-//        
-//        DPrint("offset: 0x%zx\n", offset);
-//        offset += PE_RESOURCE_ENTRY_SIZE;
-//        if ( offset > gp->file.size )
-//        {
-//            return -2;
-//        }
-//    }
-//
-//    PE_printImageResourceDirectoryEntryHeader(1, nr_of_id_entries, level);
-//    for ( i = 0; i < nr_of_id_entries; i++)
-//    {
-//        if ( level == 0 )
-//        {
-//            res_base_name->Length = 0;
-//            res_base_name->Buffer[0] = 0;
-//        }
-//
-//        s = PE_parseResourceDirectoryEntry(i, offset, table_fo, nr_of_id_entries, level, gp, svas, nr_of_sections, res_base_name);
-//        // break on error or try next ??
-//        if ( s != 0 )
-//            break;
-//        
-//        DPrint("offset: 0x%zx\n", offset);
-//        offset += PE_RESOURCE_ENTRY_SIZE;
-//        if ( offset > gp->file.size )
-//        {
-//            return -3;
-//        }
-//    }
-//
-//    return 0;
-//}
-
-//int PE_parseResourceDirectoryEntry(
-//    uint16_t id, 
-//    size_t offset, 
-//    size_t table_fo, 
-//    uint16_t nr_of_entries, 
-//    uint16_t level,
-//    PGlobalParams gp,
-//    SVAS* svas,
-//    uint16_t nr_of_sections,
-//    PNAME res_base_name
-//)
-//{
-//    PE_IMAGE_RESOURCE_DIRECTORY rd;
-//    PE_IMAGE_RESOURCE_DIRECTORY_ENTRY re;
-//    PE_IMAGE_RESOURCE_DATA_ENTRY de;
-//    
-//    int s;
-//    size_t dir_offset = 0;
-//    uint32_t fotd;
-//
-//    size_t start_file_offset = gp->file.start_offset;
-//    size_t file_size = gp->file.size;
-//    FILE* fp = gp->file.handle;
-//
-//    uint8_t* block_s = gp->data.block_sub;
-//    
-//    s = PE_fillImageResourceDirectoryEntry(&re, offset, start_file_offset, file_size, fp, block_s);
-//    if ( s != 0 ) 
-//        return s;
-//
-//    PE_printImageResourceDirectoryEntry(&re, table_fo, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
-//
-//    dir_offset = table_fo + re.OFFSET_UNION.DATA_STRUCT.OffsetToDirectory;
-//    if ( dir_offset > file_size )
-//    {
-//        EPrint("Dir offset (0x%zx) beyond file size (0x%zx)!\n", dir_offset, file_size);
-//        return ERROR_DATA_BEYOND_FILE_SIZE;
-//    }
-//
-//    if ( re.NAME_UNION.NAME_STRUCT.NameIsString )
-//    {
-//        if ( res_base_name->Length < res_base_name->MaxSize - 5 );
-//        {
-//            sprintf(&res_base_name->Buffer[res_base_name->Length], "%04x.", re.NAME_UNION.NAME_STRUCT.NameOffset);
-//            res_base_name->Length += 5;
-//        }
-//    }
-//    else
-//    {
-//        if ( res_base_name->Length < res_base_name->MaxSize - 3 );
-//        {
-//            sprintf(&res_base_name->Buffer[res_base_name->Length], "%02x.", re.NAME_UNION.Id);
-//            res_base_name->Length += 3;
-//        }
-//    }
-//
-//    if ( re.OFFSET_UNION.DATA_STRUCT.DataIsDirectory )
-//    {
-//        s = PE_fillImageResourceDirectory(&rd, dir_offset, start_file_offset, file_size, fp, block_s);
-//        if ( s != 0 )
-//            return -2;
-//        PE_printImageResourceDirectory(&rd, level+1);
-//
-//        dir_offset = (size_t)dir_offset + PE_RESOURCE_DIRECTORY_SIZE;
-//        if ( dir_offset > file_size )
-//        {
-//            EPrint("next dir offset (0x%zx) beyond file size (0x%zx)!\n", dir_offset, file_size);
-//            return ERROR_DATA_BEYOND_FILE_SIZE;
-//        }
-//
-//        s = PE_recurseImageResourceDirectory(dir_offset, table_fo, rd.NumberOfNamedEntries,
-//                                        rd.NumberOfIdEntries, level + 1, gp, svas, nr_of_sections, res_base_name);
-//        if ( s != 0 )
-//            return s;
-//    }
-//    else
-//    {
-//        s = PE_fillImageResourceDataEntry(&de, dir_offset, start_file_offset, file_size, fp, block_s);
-//        if ( s != 0 ) 
-//            return s;
-//        fotd = (uint32_t)PE_Rva2Foa(de.OffsetToData, svas, nr_of_sections);
-//        fotd += (uint32_t)start_file_offset;
-//        PE_printImageResourceDataEntry(&de, fotd, dir_offset, level);
-//        
-//        printf("res_base_name: %s\n", res_base_name->Buffer);
-//        PE_saveResource(&re, &de, fotd, gp, res_base_name);
-//    }
-//    
-//    return 0;
-//}
 
 int PE_fillImageResourceDirectoryEntry(
     PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
@@ -593,8 +390,16 @@ int PE_parseResourceDirectoryEntryI(
 
         if ( rdid.ResName.Length + name.Length+1 < rdid.ResName.MaxSize )
         {
+#ifdef _WIN32
             sprintf(rdid.ResName.Buffer, "%s%.*ws.", res_base_name->Buffer, name.Length, name.NameString);
-            rdid.ResName.Length += 5;
+#else
+            s = sprintf(rdid.ResName.Buffer, "%s", res_base_name->Buffer);
+            uint16_t i;
+            for ( i = 0; i < name.Length; i++ )
+                sprintf(&rdid.ResName.Buffer[i+s], "%c", name.NameString[i]);
+            rdid.ResName.Buffer[i+s] = '.';
+#endif
+            rdid.ResName.Length += name.Length+1;
         }
         //if ( rdid.ResName.Length + 10 < rdid.ResName.MaxSize )
         //{
@@ -607,7 +412,7 @@ int PE_parseResourceDirectoryEntryI(
         if ( rdid.ResName.Length + 5 < rdid.ResName.MaxSize )
         {
             sprintf(rdid.ResName.Buffer, "%s%04x.", res_base_name->Buffer, re.NAME_UNION.Id);
-            rdid.ResName.Length += 3;
+            rdid.ResName.Length += 5;
         }
     }
     //printf("rdid.ResName.Length: 0x%x\n", rdid.ResName.Length);
@@ -798,16 +603,22 @@ clean:
 char* getFileType(uint8_t* buffer, uint32_t buffer_size)
 {
     FPrint();
-    if ( buffer_size > 0x100 && *(uint16_t*)&buffer[0] == *(uint16_t*)&MAGIC_PE_BYTES[0] )
+
+    if ( buffer_size > 0x20 && *(uint32_t*)&buffer[0] == 0x46464952 && *(uint32_t*)&buffer[8] == 0x20495641 )
+    {
+        return "avi";
+    }
+    else if ( buffer_size > 0x10 && *(uint32_t*)&buffer[0] == 0x4643534D  )
+    {
+        return "mcsv";
+    }
+    else if ( buffer_size > 0x100 && *(uint16_t*)&buffer[0] == *(uint16_t*)&MAGIC_PE_BYTES[0] )
     {
         return "pe";
     }
-    else if ( 
-              ( buffer_size > 0x10 && *(uint32_t*)&buffer[1] == 0x6c6d783f ) // [<]?xml
-            || ( buffer_size > 0x10 && *(uint32_t*)&buffer[0] == 0x7373613c && *(uint32_t*)&buffer[4] == 0x6c626d65 ) // <assembl[y]
-            )
+    else if ( buffer_size > 0x10 && *(uint64_t*)&buffer[0] == 0x0A1A0A0D474E5089  ) // .png
     {
-        return "xml";
+        return "png";
     }
     else if ( buffer_size > 0x10 && *(uint32_t*)&buffer[0] == 0x00010000)
     {
@@ -820,6 +631,20 @@ char* getFileType(uint8_t* buffer, uint32_t buffer_size)
               && *(uint32_t*)&buffer[0x1E] == 0x0046004e )
     {
         return "vsi";
+    }
+    else if ( buffer_size > 0x20 && *(uint32_t*)&buffer[0] == 0x46464952 && *(uint32_t*)&buffer[8] == 0x45564157 )
+    {
+        return "wav";
+    }
+    else if (
+              ( buffer_size > 0x10 && *(uint32_t*)&buffer[1] == 0x6c6d783f ) // [<]?xml
+            || ( buffer_size > 0x10 && *(uint32_t*)&buffer[3] == 0x6c6d783f ) // [<]?xml
+            || ( buffer_size > 0x10 && *(uint32_t*)&buffer[4] == 0x6c6d783f ) // [<]?xml
+            || ( buffer_size > 0x10 && *(uint64_t*)&buffer[0] == 0x7373613c6c626d65 ) // <assembl[y]
+//            || ( buffer_size > 0x10 && *(uint32_t*)&buffer[0] == 0x7373613c && *(uint32_t*)&buffer[4] == 0x6c626d65 ) // <assembl[y]
+            )
+    {
+        return "xml";
     }
     else
     {

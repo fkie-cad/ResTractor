@@ -14,19 +14,9 @@
 #include "../utils/env.h"
 
 void expandFilePath(const char* src, char* dest);
-uint8_t blockIsTooSmall(size_t);
 int checkBytes(const unsigned char* bytes, const uint8_t size, const unsigned char* block);
-uint8_t countHexWidth64(uint64_t value);
-uint8_t hasFlag64(uint64_t present, uint64_t expected);
-uint8_t hasFlag32(uint32_t present, uint32_t expected);
-uint8_t hasFlag16(uint16_t present, uint16_t expected);
-void printFlag16(uint16_t present, uint16_t expected, const char* label);
-void printFlag32(uint32_t present, uint32_t expected, const char* label);
-void printFlag32F(uint32_t present, uint32_t expected, const char* label, const char* pre, const char post);
-void printFlag64(uint64_t present, uint64_t expected, const char* label);
-uint8_t isMemZero(void* mem, size_t n);
 
-char offset_buffer[256];
+
 
 /**
  * Expand the file path:
@@ -75,14 +65,6 @@ void expandFilePath(const char* src, char* dest)
     dest[PATH_MAX-1] = 0;
 }
 
-uint8_t blockIsTooSmall(const size_t header_end)
-{
-//    DPrint("blockIsTooSmall()\n");
-//    DPrint(" - BLOCKSIZE_LARGE: %u\n", BLOCKSIZE_LARGE);
-//    DPrint(" - header_end: %zx\n", header_end);
-    return BLOCKSIZE_LARGE < header_end;
-}
-
 /**
  * Check bytes in block.
  * 
@@ -101,84 +83,6 @@ int checkBytes(const unsigned char* bytes, const uint8_t size, const unsigned ch
             return 0;
     }
 
-    return 1;
-}
-
-uint8_t countHexWidth64(uint64_t value)
-{
-    uint8_t width = 16;
-    uint8_t t8;
-    uint16_t t16;
-    uint32_t t32 = (uint32_t) (value >> 32u);
-    if ( t32 == 0 )
-    {
-        width -= 8;
-        t32 = (uint32_t) value;
-    }
-    t16 = (uint16_t) (t32 >> 16u);
-    if ( t16 == 0 )
-    {
-        width -= 4;
-        t16 = (uint16_t) t32;
-    }
-    t8 = (uint8_t) (t16 >> 8u);
-    if ( t8 == 0 )
-    {
-        width -= 2;
-    }
-    return width;
-}
-
-uint8_t hasFlag64(uint64_t present, uint64_t expected)
-{
-    uint64_t mask = expected & present;
-    return mask == expected;
-}
-
-uint8_t hasFlag32(uint32_t present, uint32_t expected)
-{
-    uint32_t mask = expected & present;
-    return mask == expected;
-}
-
-uint8_t hasFlag16(uint16_t present, uint16_t expected)
-{
-    uint16_t mask = expected & present;
-    return mask == expected;
-}
-
-void printFlag16(uint16_t present, uint16_t expected, const char* label)
-{
-    if ( hasFlag16(present, expected) )
-        printf(" %s |", label);
-}
-
-void printFlag32(uint32_t present, uint32_t expected, const char* label)
-{
-    printFlag32F(present, expected, label, " ", '|');
-}
-
-void printFlag32F(uint32_t present, uint32_t expected, const char* label, const char* pre, const char post)
-{
-    if ( hasFlag32(present, expected) )
-        printf("%s%s %c", pre, label, post);
-}
-
-void printFlag64(uint64_t present, uint64_t expected, const char* label)
-{
-    if ( hasFlag64(present, expected) )
-        printf(" %s |", label);
-}
-
-uint8_t isMemZero(void* mem, size_t n)
-{
-    uint8_t* m = (uint8_t*)mem;
-    size_t i;
-    for ( i = 0; i < n; i++ )
-    {
-        if ( m[i] != 0 )
-            return 0;
-    }
     return 1;
 }
 

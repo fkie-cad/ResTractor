@@ -12,9 +12,6 @@
 #include "PEHeader.h"
 #include "PEHeaderOffsets.h"
 #include "PEOptionalHeaderSignature.h"
-#include "PESectionCharacteristics.h"
-#include "PESymbolTable.h"
-#include "PEHeaderSectionNameResolution.h"
 #include "PEImageDirectoryParser.h"
 #include "PEHeaderPrinter.h"
 
@@ -73,7 +70,6 @@ static int PE_readSectionHeader(
 
 static void PE_fillSectionHeader(const unsigned char* ptr, PEImageSectionHeader* sh);
 static int PE_isNullSectionHeader(const PEImageSectionHeader* sh);
-static uint32_t PE_calculateSectionSize(const PEImageSectionHeader* sh);
 
 static void PE_cleanUp(
     PEHeaderData* pehd
@@ -608,48 +604,6 @@ int PE_isNullSectionHeader(const PEImageSectionHeader* sh)
            sh->NumberOfRelocations == 0 &&
            sh->NumberOfLinenumbers == 0 &&
            sh->Characteristics == 0;
-}
-
-/**
- * VirtualSize may be zero padded, SizeOfRawData may be rounded.
- * Objdump seems to choose the lesser one, or SizeOfRawData if VirtualSize is 0.
- * If SizeOfRawData the size is 0 => there is no code region.
- * TODO: clean up
- */
-uint32_t PE_calculateSectionSize(const PEImageSectionHeader* sh)
-{
-//	if ( sh->PointerToRawData == 0 ) return 0;
-    uint32_t size = sh->Misc.VirtualSize;
-
-    if ( sh->SizeOfRawData == 0
-        && ( ( hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_CODE)
-                && !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA)
-                )
-            || hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_INITIALIZED_DATA)
-            //|| ( hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_CODE
-            //                                    & PESectionCharacteristics.IMAGE_SCN_MEM_READ
-            //                                    & PESectionCharacteristics.IMAGE_SCN_MEM_WRITE)
-            //     &&
-            //     !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA)
-            //   )
-            )
-        )
-    {
-        size = sh->SizeOfRawData;
-    }
-    else if ( ( sh->SizeOfRawData < sh->Misc.VirtualSize && sh->SizeOfRawData > 0 )
-               || sh->Misc.VirtualSize == 0 
-            )
-    {
-        size = sh->SizeOfRawData;
-    }
-//	if ( hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_CODE)
-//		 && !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA) )
-//		size = sh->SizeOfRawData;
-//	else
-//		size = sh->Misc.VirtualSize;
-
-    return size;
 }
 
 void PE_cleanUp(PEHeaderData* pehd)

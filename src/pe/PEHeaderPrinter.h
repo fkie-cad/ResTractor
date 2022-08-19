@@ -11,11 +11,8 @@
 #include "../utils/blockio.h"
 #include "PEHeader.h"
 #include "PEHeaderOffsets.h"
-#include "PEOptionalHeaderSignature.h"
-#include "PEHeaderSectionNameResolution.h"
-#include "PEMachineTypes.h"
-#include "PEWindowsSubsystem.h"
-#include "PECharacteristics.h"
+
+
 
 void PE_printImageResourceDirectoryEntryHeader(
     int type,
@@ -78,7 +75,7 @@ void PE_printImageResourceDirectoryEntryHeader(int type, uint16_t n, uint16_t le
 {
     char spaces[MAX_SPACES];
     fillSpaces(spaces, MAX_SPACES, level);
-    
+
     if ( type == 0 )
         printf("%s- Named Entries (%u):\n", spaces, n);
     else if ( type == 1 )
@@ -106,9 +103,9 @@ void PE_printImageResourceDirectoryEntry(
 
     char spaces[MAX_SPACES];
     fillSpaces(spaces, MAX_SPACES, level);
-    
+
     printf("%s  %u/%u:\n", spaces, (id+1), n);
-    
+
     if ( re->NAME_UNION.NAME_STRUCT.NameIsString )
     {
         name_offset = table_fo + re->NAME_UNION.NAME_STRUCT.NameOffset;
@@ -156,14 +153,14 @@ void PE_printImageResourceDirectoryEntry(
 }
 
 void PE_printImageResourceDataEntry(
-    const PE_IMAGE_RESOURCE_DATA_ENTRY* de, 
-    uint32_t fotd, 
+    const PE_IMAGE_RESOURCE_DATA_ENTRY* de,
+    uint32_t fotd,
     uint16_t level
 )
 {
     char spaces[MAX_SPACES];
     fillSpaces(spaces, MAX_SPACES, level);
-    
+
     printf("%s  - ResourceDataEntry:\n", spaces);
     //printf("%s    - OffsetToData rva: 0x%x, fo: 0x%x\n", spaces, de->OffsetToData, fotd);
     //printf("%s    - OffsetToData: 0x%x (rva), 0x%x (fo)\n", spaces, de->OffsetToData, fotd);
