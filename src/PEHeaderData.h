@@ -8,7 +8,6 @@ typedef struct PEHeaderData
     PEImageDosHeader* image_dos_header;
     PECoffFileHeader* coff_header;
     PE64OptHeader* opt_header;
-    HeaderData* hd;
     StringTable st;
     SVAS* svas;
 } PEHeaderData;

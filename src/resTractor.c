@@ -12,22 +12,19 @@
 #include "warnings.h"
 #endif
 #include "print.h"
-//#include "utils/env.h"
-//#include "errorCodes.h"
 #include "Globals.h"
 
 #include "utils/Converter.h"
 #include "utils/common_fileio.h"
 #include "utils/Files.h"
-//#include "utils/blockio.h"
 #include "utils/Helper.h"
 
 #include "parser.h"
 
 
 #define BIN_NAME "ResTractor"
-#define BIN_VS "1.0.0"
-#define BIN_DATE "18.08.2022"
+#define BIN_VS "1.0.1"
+#define BIN_DATE "19.08.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -41,7 +38,7 @@ int initGpData(
     PGlobalParams gp
 );
 
-int cleanGpData(
+int cleanGp(
     PGlobalParams gp
 );
 
@@ -71,7 +68,6 @@ main(int argc, char** argv)
     int errsv;
     char file_name[PATH_MAX];
 
-    HeaderData* hd = NULL;
     GlobalParams gp;
 
     memset(file_name, 0, PATH_MAX);
@@ -116,31 +112,15 @@ main(int argc, char** argv)
     DPrint("abs_file_offset: 0x%zx\n", gp.file.abs_offset);
     DPrint("start_file_offset: 0x%zx\n", gp.file.start_offset);
 
-    hd = (HeaderData*) malloc(sizeof(HeaderData));
-    if ( hd == NULL )
-    {
-        EPrint("Malloc HeaderData failed.\n");
-        s = -3;
-        goto exit;
-    }
-    s =  initHeaderData(hd, DEFAULT_CODE_REGION_CAPACITY);
-    if ( s != 0 )
-        goto exit;
-    
     s = initGpData(&gp);
     if ( s != 0 )
         goto exit;
 
-    parseHeader(hd, &gp);
+    parseHeader(&gp);
 
 
 exit:
-    cleanGpData(&gp);
-    freeHeaderData(hd);
-    hd = NULL;
-    
-    if ( gp.file.handle != NULL )
-        fclose(gp.file.handle);
+    cleanGp(&gp);
 
     return s;
 }
@@ -175,7 +155,7 @@ int initGpData(PGlobalParams gp)
     return s;
 }
 
-int cleanGpData(PGlobalParams gp)
+int cleanGp(PGlobalParams gp)
 {
     int s = 0;
 
@@ -185,7 +165,11 @@ int cleanGpData(PGlobalParams gp)
     if ( gp->data.block_sub )
         free(gp->data.block_sub);
 
-    memset(&gp->data, 0, sizeof(gp->data));
+    
+    if ( gp->file.handle != NULL )
+        fclose(gp->file.handle);
+    
+    memset(gp, 0, sizeof(*gp));
 
     return s;
 }

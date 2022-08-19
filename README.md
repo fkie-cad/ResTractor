@@ -22,8 +22,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.0.0  
-Last changed: 18.08.2022
+1.0.1  
+Last changed: 19.08.2022
 
 ## REQUIREMENTS ##
 - Linux

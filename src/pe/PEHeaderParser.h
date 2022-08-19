@@ -7,7 +7,6 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include "../HeaderData.h"
 #include "../Globals.h"
 #include "../PEHeaderData.h"
 #include "PEHeader.h"
@@ -28,12 +27,10 @@
 
 
 int parsePEHeaderData(
-    PHeaderData hd,
     PGlobalParams gp
 );
 static int parsePEHeader(
     PEHeaderData* pehd,
-    PHeaderData hd,
     PGlobalParams gp
 );
 
@@ -49,6 +46,7 @@ static uint8_t PE_checkPESignature(
     uint32_t e_lfanew,
     PGlobalParams gp
 );
+
 static uint8_t PE_readCoffHeader(size_t offset,
                                  PECoffFileHeader* ch,
                                  size_t start_file_offset,
@@ -57,11 +55,6 @@ static uint8_t PE_readCoffHeader(size_t offset,
                                  FILE* fp,
                                  unsigned char* block_l);
 
-static unsigned char PE_checkCoffHeader(
-    const PECoffFileHeader* ch,
-    PHeaderData hd
-);
-
 static uint8_t PE_readOptionalHeader(size_t offset,
                                      PE64OptHeader* oh,
                                      size_t start_file_offset,
@@ -69,8 +62,7 @@ static uint8_t PE_readOptionalHeader(size_t offset,
                                      size_t file_size,
                                      FILE* fp,
                                      unsigned char* block_l);
-static void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
-                                           PHeaderData hd);
+
 static int PE_readSectionHeader(
     size_t header_start,
     PECoffFileHeader* ch,
@@ -78,6 +70,7 @@ static int PE_readSectionHeader(
     int parse_svas,
     SVAS** svas
 );
+
 static void PE_fillSectionHeader(const unsigned char* ptr, PEImageSectionHeader* sh);
 static int PE_isNullSectionHeader(const PEImageSectionHeader* sh);
 static uint32_t PE_calculateSectionSize(const PEImageSectionHeader* sh);
@@ -109,7 +102,6 @@ static void PE_cleanUp(
 // Make sure to use the size of the optional header as specified in the file header.
 // 40 bytes per entry
 int parsePEHeaderData(
-    PHeaderData hd,
     PGlobalParams gp
 )
 {
@@ -129,9 +121,8 @@ int parsePEHeaderData(
     pehd.image_dos_header = &image_dos_header_l;
     pehd.coff_header = &coff_header_l;
     pehd.opt_header = &opt_header_l;
-    pehd.hd = hd;
 
-    s = parsePEHeader(&pehd, hd, gp);
+    s = parsePEHeader(&pehd, gp);
 
     PE_cleanUp(&pehd);
 
@@ -145,7 +136,6 @@ int parsePEHeaderData(
  */
 int parsePEHeader(
     PEHeaderData* pehd,
-    PHeaderData hd,
     PGlobalParams gp
 )
 {
@@ -184,24 +174,16 @@ int parsePEHeader(
         return -4;
     }
 
-    hd->headertype = HEADER_TYPE_PE;
-    hd->endian = ENDIAN_LITTLE;
-
     s = PE_readCoffHeader((size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE, coff_header, gp->file.start_offset,
                        &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_main);
     if ( s != 0 )
         return -5;
     
-    if ( !PE_checkCoffHeader(coff_header, hd) )
-        return -6;
-
     optional_header_offset = (size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE;
     s = PE_readOptionalHeader(optional_header_offset, opt_header, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_main);
     if ( s != 0 )
         return -7;
     
-    PE_fillHeaderDataWithOptHeader(opt_header, hd);
-
     section_header_offset = (size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE + coff_header->SizeOfOptionalHeader;
     s = PE_readSectionHeader(
         section_header_offset, 
@@ -375,47 +357,6 @@ uint8_t PE_readCoffHeader(size_t offset,
     return 0;
 }
 
-unsigned char PE_checkCoffHeader(
-    const PECoffFileHeader *ch,
-    PHeaderData hd
-)
-{
-//    DPrint("checkCoffHeader()\n");
-    unsigned char valid = 1;
-    (ch);
-//	char errors[ERRORS_BUFFER_SIZE] = {0};
-//	uint16_t offset = 0;
-
-//	if ( ch->NumberOfSections < 1 )
-//	{
-//		snprintf(&errors[offset], ERRORS_BUFFER_SIZE-offset, " - The NumberOfSections is %u.\n", ch->NumberOfSections);
-//		offset += strlen(errors);
-//		valid = 0;
-//	}
-//	if ( ch->SizeOfOptionalHeader == 0 )
-//	{
-//		snprintf(&errors[offset], ERRORS_BUFFER_SIZE-offset, " - The SizeOfOptionalHeader is %u.\n", ch->SizeOfOptionalHeader);
-//		offset += strlen(errors);
-//		valid = 0;
-//	}
-//	if ( strncmp(PEgetMachineName(ch->Machine), "None", 4) == 0 )
-    if ( hd->CPU_arch == 0 )
-    {
-//		snprintf(&errors[offset], ERRORS_BUFFER_SIZE-offset, " - Unknown Machine 0x%x.\n", ch->Machine);
-        IPrint("Unknown Machine 0x%x.\n", ch->Machine);
-//		offset += strlen(errors);
-//		valid = 0;
-    }
-
-//	if ( !valid && strlen(errors) )
-//	{
-//		EPrint("Coff header is invalid!\n");
-//		printf("%s\n", errors);
-//	}
-
-    return valid;
-}
-
 /**
  * Read the optional header.
  * Just the magic is filled right now, to provide a fallback for bitness determination.
@@ -556,31 +497,6 @@ uint8_t PE_readOptionalHeader(size_t offset,
     return 0;
 }
 
-void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
-                                    PHeaderData hd)
-{
-    if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_NT_OPTIONAL_HDR32_MAGIC )
-        hd->h_bitness = 32;
-    else if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_NT_OPTIONAL_HDR64_MAGIC )
-        hd->h_bitness = 64;
-    else if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_ROM_OPTIONAL_HDR_MAGIC )
-    {
-        IPrint("ROM file.\n");
-    }
-    else
-    {
-        IPrint("Unknown PeOptionalHeaderSignature (Magic) of %u.\n", oh->Magic);
-    }
-
-    if ( oh->NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_CLR_RUNTIME_HEADER &&
-        oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CLR_RUNTIME_HEADER].VirtualAddress != 0 )
-    {
-        hd->CPU_arch = ARCH_DOT_NET;
-        // TODO: check imports for mscoree.dll as well
-        // check PEB.ldr[target.exe].flags : COR Image (0x200000) This module is a .NET application.
-    }
-}
-
 /**
  * Read the section table.
  *
@@ -615,7 +531,7 @@ int PE_readSectionHeader(size_t header_start,
         *svas = (SVAS*) calloc(nr_of_sections, sizeof(SVAS));
         if ( *svas == NULL )
         {
-            EPrint("ERROR (0x%x): Alloc failed!\n", errno);
+            EPrint("Alloc failed! (0x%x)\n", errno);
             return -1;
         }
     }
@@ -669,15 +585,15 @@ void PE_fillSectionHeader(const unsigned char* ptr,
 {
     // may not be zero terminated
     strncpy(sh->Name, (const char*)&ptr[PESectionHeaderOffsets.Name], IMAGE_SIZEOF_SHORT_NAME);
-    sh->Misc.VirtualSize = *((uint32_t*) &ptr[PESectionHeaderOffsets.VirtualSize]);
-    sh->VirtualAddress = *((uint32_t*) &ptr[PESectionHeaderOffsets.VirtualAddress]);
-    sh->SizeOfRawData = *((uint32_t*) &ptr[PESectionHeaderOffsets.SizeOfRawData]);
-    sh->PointerToRawData = *((uint32_t*) &ptr[PESectionHeaderOffsets.PointerToRawData]);
-    sh->PointerToRelocations = *((uint32_t*) &ptr[PESectionHeaderOffsets.PointerToRelocations]);
-    sh->PointerToLinenumbers = *((uint32_t*) &ptr[PESectionHeaderOffsets.PointerToLinenumbers]);
-    sh->NumberOfRelocations = *((uint16_t*) &ptr[PESectionHeaderOffsets.NumberOfRelocations]);
-    sh->NumberOfLinenumbers = *((uint16_t*) &ptr[PESectionHeaderOffsets.NumberOfLinenumbers]);
-    sh->Characteristics = *((uint32_t*) &ptr[PESectionHeaderOffsets.Characteristics]);
+    sh->Misc.VirtualSize = GetIntXValueAtOffset(uint32_t, ptr, PESectionHeaderOffsets.VirtualSize);
+    sh->VirtualAddress = GetIntXValueAtOffset(uint32_t, ptr, PESectionHeaderOffsets.VirtualAddress);
+    sh->SizeOfRawData = GetIntXValueAtOffset(uint32_t, ptr, PESectionHeaderOffsets.SizeOfRawData);
+    sh->PointerToRawData = GetIntXValueAtOffset(uint32_t, ptr, PESectionHeaderOffsets.PointerToRawData);
+    sh->PointerToRelocations = GetIntXValueAtOffset(uint32_t, ptr, PESectionHeaderOffsets.PointerToRelocations);
+    sh->PointerToLinenumbers = GetIntXValueAtOffset(uint32_t, ptr, PESectionHeaderOffsets.PointerToLinenumbers);
+    sh->NumberOfRelocations = GetIntXValueAtOffset(uint16_t, ptr, PESectionHeaderOffsets.NumberOfRelocations);
+    sh->NumberOfLinenumbers = GetIntXValueAtOffset(uint16_t, ptr, PESectionHeaderOffsets.NumberOfLinenumbers);
+    sh->Characteristics = GetIntXValueAtOffset(uint32_t, ptr, PESectionHeaderOffsets.Characteristics);
 }
 
 int PE_isNullSectionHeader(const PEImageSectionHeader* sh)

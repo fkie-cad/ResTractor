@@ -18,7 +18,6 @@ typedef struct LoadConfigTableOffsets {
 } LoadConfigTableOffsets, *PLoadConfigTableOffsets;
 
 #include "../utils/fifo/Fifo.h"
-#include "../exp.h"
 #include "PEHeaderPrinter.h"
 #include "PEHeader.h"
 

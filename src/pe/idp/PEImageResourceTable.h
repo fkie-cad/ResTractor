@@ -97,6 +97,13 @@ int PE_fillImageResourceDataEntry(
     uint8_t* block_s
 );
 
+int PE_getResName(
+    const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
+    size_t table_fo,
+    PGlobalParams gp,
+    PE_IMAGE_RESOURCE_DIR_STRING_U_PTR* name
+);
+
 void PE_saveResource(
     const PE_IMAGE_RESOURCE_DATA_ENTRY* de, 
     uint32_t fo, 
@@ -545,6 +552,7 @@ int PE_parseResourceDirectoryEntryI(
     PE_IMAGE_RESOURCE_DIRECTORY rd;
     PE_IMAGE_RESOURCE_DIRECTORY_ENTRY re;
     PE_IMAGE_RESOURCE_DATA_ENTRY de;
+    PE_IMAGE_RESOURCE_DIR_STRING_U_PTR name;
     RDI_DATA rdid;
 
     int s;
@@ -574,11 +582,25 @@ int PE_parseResourceDirectoryEntryI(
     rdid.ResName.MaxSize = res_base_name->MaxSize;
     if ( re.NAME_UNION.NAME_STRUCT.NameIsString )
     {
-        if ( rdid.ResName.Length + 10 < rdid.ResName.MaxSize )
+        s = PE_getResName(
+                &re, 
+                table_fo, 
+                gp,
+                &name
+            );
+        if ( s != 0 )
+            return -1;
+
+        if ( rdid.ResName.Length + name.Length+1 < rdid.ResName.MaxSize )
         {
-            sprintf(rdid.ResName.Buffer, "%s%08x.", res_base_name->Buffer, re.NAME_UNION.NAME_STRUCT.NameOffset);
+            sprintf(rdid.ResName.Buffer, "%s%.*ws.", res_base_name->Buffer, name.Length, name.NameString);
             rdid.ResName.Length += 5;
         }
+        //if ( rdid.ResName.Length + 10 < rdid.ResName.MaxSize )
+        //{
+        //    sprintf(rdid.ResName.Buffer, "%s%08x.", res_base_name->Buffer, re.NAME_UNION.NAME_STRUCT.NameOffset);
+        //    rdid.ResName.Length += 5;
+        //}
     }
     else
     {
@@ -630,6 +652,49 @@ int PE_parseResourceDirectoryEntryI(
     return 0;
 }
 
+int PE_getResName(
+    const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
+    size_t table_fo,
+    PGlobalParams gp,
+    PE_IMAGE_RESOURCE_DIR_STRING_U_PTR* name
+)
+{
+    size_t name_offset = 0;
+    size_t bytes_read = 0;
+    uint8_t* ptr = NULL;
+
+    const struct Pe_Image_Resource_Dir_String_U_Offsets *name_offsets = &PeImageResourceDirStringUOffsets;
+
+    memset(name, 0, sizeof(*name));
+
+    name_offset = table_fo + re->NAME_UNION.NAME_STRUCT.NameOffset;
+    if ( !checkFileSpace(name_offset, gp->file.start_offset, 4, gp->file.size) )
+    {
+        EPrint("ressource name offset beyond file bounds!\n");
+        return -1;
+    }
+
+    name_offset = name_offset + gp->file.start_offset;
+    bytes_read = readFile(gp->file.handle, (size_t)name_offset, BLOCKSIZE_SMALL, gp->data.block_sub);
+    if ( bytes_read <= 4 )
+        return -1;
+
+    ptr = gp->data.block_sub;
+    name->Length = GetIntXValueAtOffset(uint16_t, ptr, name_offsets->Length);
+    name->NameString = ((uint16_t*) &ptr[name_offsets->NameString]);
+    if ( name->Length > (uint16_t)bytes_read - 4 ) // minus length - L'0'
+        name->Length = (uint16_t)bytes_read-4;
+    ptr[bytes_read-2] = 0;
+    ptr[bytes_read-1] = 0;
+
+    if ( !checkFileSpace(name_offset, gp->file.start_offset, 2+name_offsets->Length, gp->file.size))
+    {
+        EPrint("ressource name beyond file bounds!\n");
+        return -1;
+    }
+
+    return 0;
+}
 
 void PE_saveResource(
     const PE_IMAGE_RESOURCE_DATA_ENTRY* de, 
@@ -723,7 +788,7 @@ void PE_saveResource(
         }
         DPrint("0x%zx bytes written\n", nr_bytes);
     }
-    printf("\"%s\" written.\n", path);
+    printf("Extracted \"%s\".\n", path);
 
 clean:
     if ( out_file )

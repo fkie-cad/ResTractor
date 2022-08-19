@@ -8,14 +8,11 @@
 #include "utils/Helper.h"
 #include "utils/blockio.h"
 
-#include "HeaderData.h"
-#include "headerDataHandler.h"
 #include "Globals.h"
 
 #include "pe/PEHeaderParser.h"
 
 static void parseHeader(
-    PHeaderData hd,
     PGlobalParams gp
 );
 
@@ -25,7 +22,7 @@ int isPE(
 
 
 
-void parseHeader(PHeaderData hd, PGlobalParams gp)
+void parseHeader(PGlobalParams gp)
 {
     size_t n;
     int s = 0;
@@ -44,7 +41,7 @@ void parseHeader(PHeaderData hd, PGlobalParams gp)
     }
     else if ( isPE(gp->data.block_main) )
     {
-        s = parsePEHeaderData(hd, gp);
+        s = parsePEHeaderData(gp);
         if ( s != 0 )
         {
             EPrint("parsing PE header failed!\n");
