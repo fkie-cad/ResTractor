@@ -44,12 +44,12 @@ void parseHeader(PGlobalParams gp)
         s = parsePEHeaderData(gp);
         if ( s != 0 )
         {
-            EPrint("parsing PE header failed!\n");
+            EPrint("Parsing PE header failed!\n");
         }
     }
     else
     {
-        printf("Not PE file!\n");
+        printf("Not a PE file!\n");
     }
 }
 

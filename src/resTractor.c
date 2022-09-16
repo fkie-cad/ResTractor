@@ -23,8 +23,8 @@
 
 
 #define BIN_NAME "ResTractor"
-#define BIN_VS "1.0.1"
-#define BIN_DATE "19.08.2022"
+#define BIN_VS "1.0.2"
+#define BIN_DATE "02.09.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -164,7 +164,6 @@ int cleanGp(PGlobalParams gp)
 
     if ( gp->data.block_sub )
         free(gp->data.block_sub);
-
     
     if ( gp->file.handle != NULL )
         fclose(gp->file.handle);
@@ -206,9 +205,9 @@ void printHelp()
     printf("\n");
     printf("Examples:\n");
 #ifdef _WIN32
-    printf("%s path/to/a.file -o %%tmp%%\n", BIN_NAME);
+    printf("%s C:\\interesting.exe -o %%tmp%%\n", BIN_NAME);
 #else
-    printf("./%s path/to/a.file -o /tmp\n", BIN_NAME);
+    printf("./%s /tmp/interesting.exe -o /tmp\n", BIN_NAME);
 #endif
 }
 

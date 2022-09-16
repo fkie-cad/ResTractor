@@ -13,6 +13,14 @@ typedef struct _NAME {
     char Buffer[BASE_NAME_MAX_SIZE];
 } NAME, *PNAME;
 
+typedef struct _RDI_DATA {
+    size_t Offset;
+    uint16_t NumberOfNamedEntries;
+    uint16_t NumberOfIdEntries;
+    uint16_t Level;
+    NAME ResName;
+} RDI_DATA, *PRDI_DATA;
+
 size_t res_count = 0;
 size_t file_count = 0;
 
@@ -250,19 +258,10 @@ int PE_fillImageResourceDataEntry(PE_IMAGE_RESOURCE_DATA_ENTRY* de,
     return 0;
 }
 
-typedef struct _RDI_DATA {
-    size_t Offset;
-    uint16_t NumberOfNamedEntries;
-    uint16_t NumberOfIdEntries;
-    uint16_t Level;
-    NAME ResName;
-} RDI_DATA, *PRDI_DATA;
-
 int PE_iterateImageResourceDirectory(
     size_t offset,
     size_t table_fo,
-    uint16_t
-    nr_of_named_entries,
+    uint16_t nr_of_named_entries,
     uint16_t nr_of_id_entries,
     uint16_t level,
     PGlobalParams gp,
@@ -615,6 +614,15 @@ char* getFileType(uint8_t* buffer, uint32_t buffer_size)
     else if ( buffer_size > 0x100 && *(uint16_t*)&buffer[0] == *(uint16_t*)&MAGIC_PE_BYTES[0] )
     {
         return "pe";
+    }
+    else if ( buffer_size > 0x50 && *(uint64_t*)&buffer[0] == 0xE11AB1A1E011CFD0 )
+    {
+        // Compound File Binary Format, a container format defined by Microsoft COM. 
+        // It can contain the equivalent of files and directories. 
+        // It is used by Windows Installer and for documents in older versions of Microsoft Office.
+        // It can be used by other programs as well that rely on the COM and OLE API's.
+        // .doc, .xls, .ppt, .msi, .msg
+        return "cfm";
     }
     else if ( buffer_size > 0x10 && *(uint64_t*)&buffer[0] == 0x0A1A0A0D474E5089  ) // .png
     {

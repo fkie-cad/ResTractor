@@ -4,12 +4,18 @@ Resource extractor tool for PE files.
 This tool reads the resource table of a PE file and saves found resources to a directory.
 The files will be named after their id and have a `.res` file type.
 Some types are recognized and will be given a different type.
+- AVI files are typed `.avi`
+- Compound File Binary Format are typed as `.cbf`. Could possibly be .doc, .xls, .ppt, .msi, .msg.
+- Icons are typed as `.ico`. Icons seem to be split in multiple parts though.
 - PE files are typed `.pe`. 
-- XML files are typed `.xml`
+- PNG files are typed `.png`
 - VS Version Info files are typed `.vsi`
+- WAVE files are typed `.wav`
+- XML files are typed `.xml`
+- Default type is `.res`
 
 The source is deduced from the famous `HeaderParser`.
-Some cleaning may be done sometime.
+Some more cleaning may be done sometime.
 
 
 POSIX compliant.  
@@ -22,8 +28,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.0.1  
-Last changed: 19.08.2022
+1.0.2  
+Last changed: 02.09.2022
 
 ## REQUIREMENTS ##
 - Linux
