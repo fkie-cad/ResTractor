@@ -28,8 +28,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.0.2  
-Last changed: 02.09.2022
+1.0.3  
+Last changed: 24.09.2022
 
 ## REQUIREMENTS ##
 - Linux
@@ -65,7 +65,7 @@ The PlatformToolset defaults to "v142", but may be changed with the `/pts` optio
 
 In a developer cmd you can also type:
 ```bash
-$devcmd> msbuild ResTractor.vcxproj /p:Configuration=<Release|Debug> /p:Platform=<x64|x86> [/p:PlatformToolset=<v142|v143|WindowsApplicationForDrivers10.0>]
+$devcmd> msbuild ResTractor.vcxproj /p:Configuration=<Release|Debug> /p:Platform=<x64|x86> [/p:PlatformToolset=<v142|v143>]
 ```
 
 ### Runtime Errors (Windows)

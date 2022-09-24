@@ -23,8 +23,8 @@
 
 
 #define BIN_NAME "ResTractor"
-#define BIN_VS "1.0.2"
-#define BIN_DATE "02.09.2022"
+#define BIN_VS "1.0.3"
+#define BIN_DATE "24.09.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -182,10 +182,10 @@ void printUsage()
 #else
     char* pref = "./";
 #endif
-    printf("Usage: %s%s [options] <file> [options]\n", pref, BIN_NAME);
-    printf("\n");
     printf("Version: %s\n", BIN_VS);
     printf("Last changed: %s\n", BIN_DATE);
+    printf("\n");
+    printf("Usage: %s%s [options] <file> [options]\n", pref, BIN_NAME);
 }
 
 bool isCallForHelp(const char* arg1)
@@ -222,8 +222,6 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, char* file_name)
     for ( i = start_i; i < end_i; i++ )
     {
         arg = argv[i];
-        //if ( arg[0] != LIN_PARAM_IDENTIFIER &&  )
-        //    break;
 
         if ( isArgOfType(arg, "-o") )
         {
@@ -256,9 +254,9 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, char* file_name)
         s = -1;
     }
 
-    if ( gp->outDir!=NULL )
+    if ( gp->outDir != NULL )
     {
-        if ( strnlen(gp->outDir, PATH_MAX) >= PATH_MAX-10 )
+        if ( strnlen(gp->outDir, PATH_MAX) >= PATH_MAX-20 )
         {
             EPrint("Output directory path \"%.*s\" too long!\n", PATH_MAX, gp->outDir);
             gp->outDir = NULL;
@@ -270,6 +268,11 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, char* file_name)
             gp->outDir = NULL;
             s = -3;
         }
+    }
+    else
+    {
+        EPrint("No out dir set!\n");
+        s = -1;
     }
 
     return s;
