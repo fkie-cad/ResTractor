@@ -21,7 +21,7 @@
 
 
 #define BIN_NAME "ResTractor"
-#define BIN_VS "1.0.4"
+#define BIN_VS "1.0.5"
 #define BIN_DATE "14.12.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')

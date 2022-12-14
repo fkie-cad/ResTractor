@@ -129,7 +129,28 @@ size_t getBaseNameOffset(
 );
 
 
+/**
+ * Extract the file type extension out of a file_path.
+ * "Light" version just pointing to the extension in the memory of file_path.
+ *
+ * @param file_path char*
+ * @param file_name char**
+ * @param char** extension saving the extension
+ * @return size_t the size of the extension
+ */
+size_t getFileExtension(
+    const char* file_path,
+    size_t file_path_ln, 
+    const char** extension
+);
 
+/**
+ * Get the numerical offset of the file type extension in the file path.
+ */
+size_t getFileExtensionOffset(
+    const char* file_path,
+    size_t file_path_ln
+);
 
 
 
@@ -294,7 +315,7 @@ size_t getBaseNameOffset(
     if ( file_path_ln == 0 )
         return 0;
     size_t i = file_path_ln - 1;
-    while ( 1 )
+    while ( i > 1 )
     {
         if ( file_path[i] == '/' 
 #ifdef _WIN32 
@@ -305,11 +326,55 @@ size_t getBaseNameOffset(
             return i + 1;
         }
 
-        if ( i > 1 )
-            i--;
-        else
-            break;
+        i--;
     }
+    return 0;
+}
+
+size_t getFileExtension(
+    const char* file_path,
+    size_t file_path_ln, 
+    const char** extension
+)
+{
+    if ( extension == NULL )
+        return 0;
+
+    if ( file_path == 0 || file_path[0] == 0 || file_path_ln == 0 || extension == NULL )
+    {
+        *extension = NULL;
+        return 0;
+    }
+
+    size_t offset = getFileExtensionOffset(file_path, file_path_ln);
+    if ( offset >= file_path_ln )
+    {
+        *extension = NULL;
+        return 0;
+    }	
+    *extension = &file_path[offset];
+    return file_path_ln - offset;
+}
+
+size_t getFileExtensionOffset(
+    const char* file_path,
+    size_t file_path_ln
+)
+{
+    if ( file_path_ln == 0 )
+        return 0;
+
+    size_t i = file_path_ln - 1;
+    while ( i > 1 )
+    {
+        if ( file_path[i] == '.' )
+        {
+            return i;
+        }
+
+        i--;
+    }
+
     return 0;
 }
 

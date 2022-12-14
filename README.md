@@ -33,7 +33,7 @@ Compiles and runs under
 
 
 ## Version ##
-1.0.4  
+1.0.5  
 Last changed: 14.12.2022
 
 ## REQUIREMENTS ##

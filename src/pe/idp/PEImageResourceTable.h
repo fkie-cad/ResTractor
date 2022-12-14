@@ -506,7 +506,9 @@ void PE_saveResource(
     uint32_t parts;
     uint32_t rest;
     size_t nr_bytes;
-    char path[PATH_MAX];
+    char* path = NULL;
+    size_t path_cb = 0;
+    size_t path_buffer_size = 0;
     FILE* out_file = NULL;
     char* file_type = NULL;
     
@@ -529,13 +531,35 @@ void PE_saveResource(
     file_type = getFileType(buffer, (uint32_t)nr_bytes);
     DPrint("file_type: %s\n", file_type);
 
-    if ( strlen(gp->outDir) + 1 + res_base_name->Length + strlen(file_type) >= PATH_MAX )
+    path_cb = strlen(gp->outDir) + 1 + res_base_name->Length + strlen(file_type);
+    path_buffer_size = path_cb + 1 + 17; // terminating 0 + possible duplication index : ~ + sizeof(uint64)*2
+    path = (char*)malloc(path_buffer_size);
+    if ( !path )
     {
-        EPrint("Path to long!\n");
+        EPrint("Allocating path buffer failed!");
         return;
     }
+
     sprintf(path, "%s%c%s%s", gp->outDir, PATH_SEPARATOR, res_base_name->Buffer, file_type);
     
+    // check if file exists
+    size_t index = 0;
+    while ( fileExists(path) )
+    {
+        DPrint("File \"%s\" exists.\n", path);
+
+        // add index to path and check again
+        if ( index < SIZE_MAX )
+            index++;
+        else
+        {
+            EPrint("Maximum index reached!\n");
+            goto clean;
+        }
+        sprintf(&path[path_cb], "~%zx", index);
+        DPrint("New name: \"%s\"\n", path);
+    }
+
     out_file = fopen(path, "wb");
     if ( !out_file )
     {
@@ -590,6 +614,9 @@ void PE_saveResource(
 clean:
     if ( out_file )
         fclose(out_file);
+
+    if ( path )
+        free(path);
 }
 
 char* getFileType(uint8_t* buffer, uint32_t buffer_size)
@@ -605,20 +632,6 @@ char* getFileType(uint8_t* buffer, uint32_t buffer_size)
     {
         return "bmf"; // binary MOF Data file
     }
-    else if ( buffer_size > 0x10 && 
-             *(uint32_t*)&buffer[0] == 0x38464947 &&
-            ( *(uint16_t*)&buffer[4] == 0x6137 || *(uint16_t*)&buffer[4] == 0x6139 ) )
-    {
-        return "gif";
-    }
-    else if ( buffer_size > 0x10 && *(uint32_t*)&buffer[0] == 0x4643534D  )
-    {
-        return "mcsv";
-    }
-    else if ( buffer_size > 0x100 && *(uint16_t*)&buffer[0] == *(uint16_t*)&MAGIC_PE_BYTES[0] )
-    {
-        return "pe";
-    }
     else if ( buffer_size > 0x50 && *(uint64_t*)&buffer[0] == 0xE11AB1A1E011CFD0 )
     {
         // Compound File Binary Format, a container format defined by Microsoft COM. 
@@ -628,13 +641,32 @@ char* getFileType(uint8_t* buffer, uint32_t buffer_size)
         // .doc, .xls, .ppt, .msi, .msg
         return "cfm";
     }
-    else if ( buffer_size > 0x10 && *(uint64_t*)&buffer[0] == 0x0A1A0A0D474E5089  ) // .png
+    else if ( buffer_size > 0x10 && 
+             *(uint32_t*)&buffer[0] == 0x38464947 &&
+            ( *(uint16_t*)&buffer[4] == 0x6137 || *(uint16_t*)&buffer[4] == 0x6139 ) )
     {
-        return "png";
+        return "gif";
     }
     else if ( buffer_size > 0x10 && *(uint32_t*)&buffer[0] == 0x00010000)
     {
         return "ico";
+    }
+    else if ( buffer_size > 0x10 && *(uint32_t*)&buffer[0] == 0x4643534D  )
+    {
+        return "mcsv";
+    }
+    else if ( buffer_size > 0x100 && *(uint16_t*)&buffer[0] == *(uint16_t*)&MAGIC_PE_BYTES[0] )
+    {
+        return "pe";
+    }
+    else if ( buffer_size > 0x10 && *(uint64_t*)&buffer[0] == 0x0A1A0A0D474E5089  ) // .png
+    {
+        return "png";
+    }
+    else if ( buffer_size > 0x10 
+              && *(uint64_t*)&buffer[0x00] == 0x0D3E454C5954533C ) // '<STYLE> '
+    {
+        return "style";
     }
     else if ( buffer_size > 0x30 
               && *(uint64_t*)&buffer[0x06] == 0x0056005f00530056 
@@ -643,11 +675,6 @@ char* getFileType(uint8_t* buffer, uint32_t buffer_size)
               && *(uint32_t*)&buffer[0x1E] == 0x0046004e )
     {
         return "vsi";
-    }
-    else if ( buffer_size > 0x10 
-              && *(uint64_t*)&buffer[0x00] == 0x0D3E454C5954533C ) // '<STYLE> '
-    {
-        return "style";
     }
     else if ( buffer_size > 0x20 && *(uint32_t*)&buffer[0] == 0x46464952 && *(uint32_t*)&buffer[8] == 0x45564157 )
     {
