@@ -42,7 +42,7 @@ void parseHeader(PGlobalParams gp)
     else if ( isPE(gp->data.block_main) )
     {
         s = parsePEHeaderData(gp);
-        if ( s != 0 )
+        if ( s < 0 )
         {
             EPrint("Parsing PE header failed!\n");
         }

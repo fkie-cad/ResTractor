@@ -5,12 +5,17 @@ This tool reads the resource table of a PE file and saves found resources to a d
 The files will be named after their id and have a `.res` file type.
 Some types are recognized and will be given a different type.
 - AVI files are typed `.avi`
+- Binary MOF Data files are typed `.bmf`
 - Compound File Binary Format are typed as `.cbf`. Could possibly be .doc, .xls, .ppt, .msi, .msg.
+- GIFs are typed as `.gif`.
 - Icons are typed as `.ico`. Icons seem to be split in multiple parts though.
-- PE files are typed `.pe`. 
+- MCSV files are typed `.mcsv`.
+- PE files are typed `.pe`. Could possibly .exe, .sys, dll.
 - PNG files are typed `.png`
+- <STYLE> files are typed `.style`
 - VS Version Info files are typed `.vsi`
 - WAVE files are typed `.wav`
+- Windows event tempate files are typed `.wevt`
 - XML files are typed `.xml`
 - Default type is `.res`
 
@@ -28,8 +33,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.0.3  
-Last changed: 24.09.2022
+1.0.4  
+Last changed: 14.12.2022
 
 ## REQUIREMENTS ##
 - Linux
@@ -81,6 +86,7 @@ $ ./ResTractor [options] a/file/name
 Options:  
  * -h Print help.
  * -o:string Out directory, where the resource files will be saved.
+ * -p Print the resource directory structure.
  
 ## EXAMPLE ##
 ```bash

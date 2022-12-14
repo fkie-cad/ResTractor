@@ -71,6 +71,9 @@ typedef struct GlobalParams
     const char* outDir;
 
     HPFile file;
+    uint32_t flags;
 } GlobalParams, *PGlobalParams;
+
+#define FLAG_PRINT  (0x1)
 
 #endif

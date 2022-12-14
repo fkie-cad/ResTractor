@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -23,8 +21,8 @@
 
 
 #define BIN_NAME "ResTractor"
-#define BIN_VS "1.0.3"
-#define BIN_DATE "24.09.2022"
+#define BIN_VS "1.0.4"
+#define BIN_DATE "14.12.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -64,7 +62,6 @@ __cdecl
 #endif
 main(int argc, char** argv)
 {
-//    size_t n = 0;
     int errsv;
     char file_name[PATH_MAX];
 
@@ -96,7 +93,7 @@ main(int argc, char** argv)
     errsv = errno;
     if ( gp.file.handle == NULL)
     {
-        EPrint("Could not open file: \"%s\" (0x%x)\n", file_name, errsv);
+        EPrint("Could not open file \"%s\" (0x%x)\n", file_name, errsv);
         return errsv;
     }
 
@@ -200,6 +197,7 @@ void printHelp()
     printf("\n"
         "Options:\n"
             " * -o:string Out directory, where the resource files will be saved.\n"
+            " * -p Print the resource directory structure.\n"
             " * -h Print this.\n"
     );
     printf("\n");
@@ -231,6 +229,10 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, char* file_name)
                 cropTrailingSlash((char*)gp->outDir);
                 i++;
             }
+        }
+        else if ( isArgOfType(arg, "-p") )
+        {
+            gp->flags |= FLAG_PRINT;
         }
         else if ( arg[0] != '-' )
         {
@@ -269,9 +271,10 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, char* file_name)
             s = -3;
         }
     }
-    else
+
+    if ( gp->outDir == NULL && !(gp->flags&FLAG_PRINT) )
     {
-        EPrint("No out dir set!\n");
+        EPrint("No out dir or printing mode set!\n");
         s = -1;
     }
 

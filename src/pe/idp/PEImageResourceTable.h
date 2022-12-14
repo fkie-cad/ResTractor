@@ -1,5 +1,5 @@
-#ifndef HEADER_PARSER_PE_IMAGE_RESSOURCE_TABLE_H
-#define HEADER_PARSER_PE_IMAGE_RESSOURCE_TABLE_H
+#ifndef HEADER_PARSER_PE_IMAGE_RESOURCE_TABLE_H
+#define HEADER_PARSER_PE_IMAGE_RESOURCE_TABLE_H
 
 
 
@@ -134,17 +134,16 @@ int PE_parseImageResourceTable(
     if ( table_fo == 0 )
     {
         printf("No resource table found!\n");
-        return -2;
+        return 1;
     }
 
     // fill root PE_IMAGE_RESOURCE_DIRECTORY info
     s = PE_fillImageResourceDirectory(&rd, table_fo, start_file_offset, file_size, fp, block_s);
     if ( s != 0 )
         return s;
-    
-#ifdef DEBUG_PRINT
-    PE_printImageResourceDirectory(&rd, 0);
-#endif
+
+    if ( gp->flags&FLAG_PRINT )
+        PE_printImageResourceDirectory(&rd, 0);
 
     s = PE_iterateImageResourceDirectory(
         table_fo + PE_RESOURCE_DIRECTORY_SIZE,
@@ -302,9 +301,9 @@ int PE_iterateImageResourceDirectory(
         //printf("act.name->MaxSize: 0x%x\n", act->ResName.MaxSize);
         //printf("act.name->Buffer: %s (%p)\n", act->ResName.Buffer, act->ResName.Buffer);
         
-#ifdef DEBUG_PRINT
-        PE_printImageResourceDirectoryEntryHeader(0, nr_of_named_entries, level);
-#endif
+        if ( gp->flags&FLAG_PRINT )
+            PE_printImageResourceDirectoryEntryHeader(0, nr_of_named_entries, level);
+
         for ( i = 0; i < nr_of_named_entries; i++ )
         {
             s = PE_parseResourceDirectoryEntryI(i, offset, table_fo, nr_of_named_entries, level, gp, svas, nr_of_sections, &fifo, &act->ResName);
@@ -314,9 +313,9 @@ int PE_iterateImageResourceDirectory(
             offset += PE_RESOURCE_ENTRY_SIZE;
         }
         
-#ifdef DEBUG_PRINT
-        PE_printImageResourceDirectoryEntryHeader(1, nr_of_id_entries, level);
-#endif
+        if ( gp->flags&FLAG_PRINT )
+            PE_printImageResourceDirectoryEntryHeader(1, nr_of_id_entries, level);
+
         for ( i = 0; i < nr_of_id_entries; i++ )
         {
             s = PE_parseResourceDirectoryEntryI(i, offset, table_fo, nr_of_id_entries, level, gp, svas, nr_of_sections, &fifo, &act->ResName);
@@ -363,16 +362,9 @@ int PE_parseResourceDirectoryEntryI(
     (id);(nr_of_entries);
 
     PE_fillImageResourceDirectoryEntry(&re, offset, start_file_offset, file_size, fp, block_s);
-#ifdef DEBUG_PRINT
-    PE_printImageResourceDirectoryEntry(&re, table_fo, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
-#endif
+    if ( gp->flags&FLAG_PRINT )
+        PE_printImageResourceDirectoryEntry(&re, table_fo, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
     
-    //memset(&rdid, 0, sizeof(rdid));
-
-    //printf("res_base_name->Length: 0x%x\n", res_base_name->Length);
-    //printf("res_base_name->MaxSize: 0x%x\n", res_base_name->MaxSize);
-    //printf("res_base_name->Buffer: %s (%p)\n", res_base_name->Buffer, res_base_name->Buffer);
-
     memset(&rdid, 0, sizeof(rdid));
     rdid.ResName.Length = res_base_name->Length;
     rdid.ResName.MaxSize = res_base_name->MaxSize;
@@ -425,16 +417,16 @@ int PE_parseResourceDirectoryEntryI(
         s = PE_fillImageResourceDirectory(&rd, dir_offset, start_file_offset, file_size, fp, block_s);
         if ( s != 0 )
             return 1;
-#ifdef DEBUG_PRINT
-        PE_printImageResourceDirectory(&rd, level+1);
-#endif
+
+        if ( gp->flags&FLAG_PRINT )
+            PE_printImageResourceDirectory(&rd, level+1);
+
         rdid.Offset = (size_t)dir_offset + PE_RESOURCE_DIRECTORY_SIZE;
         rdid.NumberOfNamedEntries = rd.NumberOfNamedEntries;
         rdid.NumberOfIdEntries = rd.NumberOfIdEntries;
         rdid.Level = level + 1;
 
         Fifo_push(fifo, &rdid, sizeof(RDI_DATA));
-
     }
     else
     {
@@ -443,14 +435,15 @@ int PE_parseResourceDirectoryEntryI(
             return s;
         fotd = (uint32_t)PE_Rva2Foa(de.OffsetToData, svas, nr_of_sections);
         fotd += (uint32_t)start_file_offset;
-#ifdef DEBUG_PRINT
-        PE_printImageResourceDataEntry(&de, fotd, level);
-#endif
+
+        if ( gp->flags&FLAG_PRINT )
+            PE_printImageResourceDataEntry(&de, fotd, level);
         
         res_count++;
 
         //printf("final res base name: %s\n", rdid.ResName.Buffer);
-        PE_saveResource(&de, fotd, gp, &rdid.ResName);
+        if ( gp->outDir )
+            PE_saveResource(&de, fotd, gp, &rdid.ResName);
     }
 
     return 0;
@@ -474,7 +467,7 @@ int PE_getResName(
     name_offset = table_fo + re->NAME_UNION.NAME_STRUCT.NameOffset;
     if ( !checkFileSpace(name_offset, gp->file.start_offset, 4, gp->file.size) )
     {
-        EPrint("ressource name offset beyond file bounds!\n");
+        EPrint("Resource name offset beyond file bounds!\n");
         return -1;
     }
 
@@ -493,7 +486,7 @@ int PE_getResName(
 
     if ( !checkFileSpace(name_offset, gp->file.start_offset, 2+name_offsets->Length, gp->file.size))
     {
-        EPrint("ressource name beyond file bounds!\n");
+        EPrint("Resource name beyond file bounds!\n");
         return -1;
     }
 
@@ -538,7 +531,7 @@ void PE_saveResource(
 
     if ( strlen(gp->outDir) + 1 + res_base_name->Length + strlen(file_type) >= PATH_MAX )
     {
-        EPrint("path to long!\n");
+        EPrint("Path to long!\n");
         return;
     }
     sprintf(path, "%s%c%s%s", gp->outDir, PATH_SEPARATOR, res_base_name->Buffer, file_type);
@@ -607,6 +600,17 @@ char* getFileType(uint8_t* buffer, uint32_t buffer_size)
     {
         return "avi";
     }
+    else if ( buffer_size > 0x10 &&
+             *(uint32_t*)&buffer[0] == 0x424D4F46 ) // B M O F
+    {
+        return "bmf"; // binary MOF Data file
+    }
+    else if ( buffer_size > 0x10 && 
+             *(uint32_t*)&buffer[0] == 0x38464947 &&
+            ( *(uint16_t*)&buffer[4] == 0x6137 || *(uint16_t*)&buffer[4] == 0x6139 ) )
+    {
+        return "gif";
+    }
     else if ( buffer_size > 0x10 && *(uint32_t*)&buffer[0] == 0x4643534D  )
     {
         return "mcsv";
@@ -640,15 +644,25 @@ char* getFileType(uint8_t* buffer, uint32_t buffer_size)
     {
         return "vsi";
     }
+    else if ( buffer_size > 0x10 
+              && *(uint64_t*)&buffer[0x00] == 0x0D3E454C5954533C ) // '<STYLE> '
+    {
+        return "style";
+    }
     else if ( buffer_size > 0x20 && *(uint32_t*)&buffer[0] == 0x46464952 && *(uint32_t*)&buffer[8] == 0x45564157 )
     {
         return "wav";
+    }
+    else if ( buffer_size > 0x10 && 
+              *(uint32_t*)&buffer[0] == 0x4D495243 )
+    {
+        return "wevt";  // windows event template
     }
     else if (
               ( buffer_size > 0x10 && *(uint32_t*)&buffer[1] == 0x6c6d783f ) // [<]?xml
             || ( buffer_size > 0x10 && *(uint32_t*)&buffer[3] == 0x6c6d783f ) // [<]?xml
             || ( buffer_size > 0x10 && *(uint32_t*)&buffer[4] == 0x6c6d783f ) // [<]?xml
-            || ( buffer_size > 0x10 && *(uint64_t*)&buffer[0] == 0x7373613c6c626d65 ) // <assembl[y]
+            || ( buffer_size > 0x10 && *(uint64_t*)&buffer[0] == 0x6c626d657373613c ) // <assembl[y]
 //            || ( buffer_size > 0x10 && *(uint32_t*)&buffer[0] == 0x7373613c && *(uint32_t*)&buffer[4] == 0x6c626d65 ) // <assembl[y]
             )
     {

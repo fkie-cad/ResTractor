@@ -125,11 +125,6 @@ int parsePEHeaderData(
     return s;
 }
 
-/**
- *
- * @param force uint8_t force option FORCE_PE|FORCE_NONE
- * @param pehd PEHeaderData* data object, containing dos-,coff-,opt-header.
- */
 int parsePEHeader(
     PEHeaderData* pehd,
     PGlobalParams gp
@@ -287,7 +282,7 @@ uint8_t PE_checkPESignature(
         size = readFile(fp, abs_file_offset, BLOCKSIZE_SMALL, block_s);
         if ( !size )
         {
-            EPrint("Read PE Signature block failed.\n");
+            EPrint("Reading PE Signature block failed.\n");
             return 0;
         }
         ptr = block_s;
@@ -450,7 +445,7 @@ uint8_t PE_readOptionalHeader(size_t offset,
     nr_of_rva_to_read = (oh->NumberOfRvaAndSizes > MAX_NR_OF_RVA_TO_READ) ? MAX_NR_OF_RVA_TO_READ : (uint8_t)oh->NumberOfRvaAndSizes;
     if ( oh->NumberOfRvaAndSizes != NUMBER_OF_RVA_AND_SIZES )
     {
-        IPrint("unusual value of NumberOfRvaAndSizes: %u\n", oh->NumberOfRvaAndSizes);
+        IPrint("Unusual value of NumberOfRvaAndSizes: %u\n", oh->NumberOfRvaAndSizes);
     }
 
     if ( nr_of_rva_to_read > 0 )
@@ -458,19 +453,28 @@ uint8_t PE_readOptionalHeader(size_t offset,
         oh->DataDirectory = (PEDataDirectory*) malloc(sizeof(PEDataDirectory) * nr_of_rva_to_read);
         if ( !oh->DataDirectory )
         {
-            IPrint("allocation of DataDirectory with %u entries failed!\n", nr_of_rva_to_read);
-            IPrint("Fallback to standard size of %u!\n", NUMBER_OF_RVA_AND_SIZES);
+            IPrint("Allocation of DataDirectory with %u entries failed!\n", nr_of_rva_to_read);
 
-            oh->NumberOfRvaAndSizes = NUMBER_OF_RVA_AND_SIZES;
-            oh->DataDirectory = (PEDataDirectory*) malloc(sizeof(PEDataDirectory) * oh->NumberOfRvaAndSizes);
-
-            if ( !oh->DataDirectory )
+            if ( nr_of_rva_to_read > NUMBER_OF_RVA_AND_SIZES )
             {
-                EPrint("allocation of DataDirectory with %u entries failed!\n", oh->NumberOfRvaAndSizes);
-                oh->NumberOfRvaAndSizes = 0;
-                return 1;
+                IPrint("Fallback to standard size of %u!\n", NUMBER_OF_RVA_AND_SIZES);
+
+                oh->NumberOfRvaAndSizes = NUMBER_OF_RVA_AND_SIZES;
+                oh->DataDirectory = (PEDataDirectory*) malloc(sizeof(PEDataDirectory) * oh->NumberOfRvaAndSizes);
+
+                if ( !oh->DataDirectory )
+                {
+                    EPrint("Allocation of DataDirectory with %u entries failed!\n", oh->NumberOfRvaAndSizes);
+                    oh->NumberOfRvaAndSizes = 0;
+                    return 1;
+                }
+                nr_of_rva_to_read = NUMBER_OF_RVA_AND_SIZES;
             }
-            nr_of_rva_to_read = NUMBER_OF_RVA_AND_SIZES;
+            else
+            {
+                oh->NumberOfRvaAndSizes = 0;
+                return -1;
+            }
         }
 
         for ( i = 0; i < nr_of_rva_to_read; i++ )
