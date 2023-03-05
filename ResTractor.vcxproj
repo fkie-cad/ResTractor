@@ -148,9 +148,9 @@
     <ClCompile Include="src\utils\fifo\Fifo.c" />
   </ItemGroup>
   
-  <!-- <ItemGroup> -->
-    <!-- <ResourceCompile Include="res\headerparser.rc" /> -->
-  <!-- </ItemGroup> -->
+  <ItemGroup>
+    <ResourceCompile Include="res\restractor.rc" />
+  </ItemGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   
