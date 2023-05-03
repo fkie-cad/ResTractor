@@ -44,7 +44,7 @@ static uint8_t PE_checkPESignature(
     PGlobalParams gp
 );
 
-static uint8_t PE_readCoffHeader(size_t offset,
+static int PE_readCoffHeader(size_t offset,
                                  PECoffFileHeader* ch,
                                  size_t start_file_offset,
                                  size_t* abs_file_offset,
@@ -52,7 +52,7 @@ static uint8_t PE_readCoffHeader(size_t offset,
                                  FILE* fp,
                                  unsigned char* block_l);
 
-static uint8_t PE_readOptionalHeader(size_t offset,
+static int PE_readOptionalHeader(size_t offset,
                                      PE64OptHeader* oh,
                                      size_t start_file_offset,
                                      size_t* abs_file_offset,
@@ -317,7 +317,7 @@ uint8_t PE_checkPESignature(
     return 0;
 }
 
-uint8_t PE_readCoffHeader(size_t offset,
+int PE_readCoffHeader(size_t offset,
                           PECoffFileHeader* ch,
                           size_t start_file_offset,
                           size_t* abs_file_offset,
@@ -329,11 +329,11 @@ uint8_t PE_readCoffHeader(size_t offset,
     unsigned char *ptr;
 
     if ( !checkFileSpace(offset, start_file_offset, sizeof(PECoffFileHeader), file_size) )
-        return 1;
+        return -1;
 
     *abs_file_offset = start_file_offset;
     if ( !checkLargeBlockSpace(&offset, abs_file_offset, sizeof(PECoffFileHeader), block_l, fp) )
-        return 1;
+        return -1;
 
     ptr = &block_l[offset];
 
@@ -355,7 +355,7 @@ uint8_t PE_readCoffHeader(size_t offset,
  * @param offset
  * @param oh
  */
-uint8_t PE_readOptionalHeader(size_t offset,
+int PE_readOptionalHeader(size_t offset,
                               PE64OptHeader* oh,
                               size_t start_file_offset,
                               size_t* abs_file_offset,

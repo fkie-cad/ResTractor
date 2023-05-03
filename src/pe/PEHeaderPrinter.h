@@ -104,7 +104,7 @@ void PE_printImageResourceDirectoryEntry(
     char spaces[MAX_SPACES];
     fillSpaces(spaces, MAX_SPACES, level);
 
-    printf("%s  %u/%u:\n", spaces, (id+1), n);
+    printf("%s  %u/%u:\n", spaces, (id+1u), n);
 
     if ( re->NAME_UNION.NAME_STRUCT.NameIsString )
     {
