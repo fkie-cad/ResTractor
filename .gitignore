@@ -1,6 +1,7 @@
 /build/**
 !/build/**/
 venv/
+tests/
 .idea
 .cproject
 .project

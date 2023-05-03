@@ -1,6 +1,7 @@
 #ifndef HEADER_PARSER_PE_IMAGE_RESOURCE_TABLE_H
 #define HEADER_PARSER_PE_IMAGE_RESOURCE_TABLE_H
 
+#include "../../utils/Strings.h"
 
 
 #define PE_MAX_RES_DIR_LEVEL (0x20)
@@ -384,13 +385,20 @@ int PE_parseResourceDirectoryEntryI(
 #ifdef _WIN32
             sprintf(rdid.ResName.Buffer, "%s%.*ws.", res_base_name->Buffer, name.Length, name.NameString);
 #else
-            s = sprintf(rdid.ResName.Buffer, "%s", res_base_name->Buffer);
+            int cch = sprintf(rdid.ResName.Buffer, "%s", res_base_name->Buffer);
             uint16_t i;
+            char* nameBuffer = &rdid.ResName.Buffer[cch];
             for ( i = 0; i < name.Length; i++ )
-                sprintf(&rdid.ResName.Buffer[i+s], "%c", name.NameString[i]);
-            rdid.ResName.Buffer[i+s] = '.';
+                nameBuffer[i] = (char)name.NameString[i];
+            nameBuffer[i] = '.';
 #endif
             rdid.ResName.Length += name.Length+1;
+
+            s = sanitizePathA(rdid.ResName.Buffer, rdid.ResName.Length, rdid.ResName.Buffer, rdid.ResName.Length);
+            if ( s != 0 )
+            {
+                return -2;
+            }
         }
         //if ( rdid.ResName.Length + 10 < rdid.ResName.MaxSize )
         //{
@@ -484,7 +492,7 @@ int PE_getResName(
     ptr[bytes_read-2] = 0;
     ptr[bytes_read-1] = 0;
 
-    if ( !checkFileSpace(name_offset, gp->file.start_offset, 2+name_offsets->Length, gp->file.size))
+    if ( !checkFileSpace(name_offset, gp->file.start_offset, name_offsets->Length+name->Length, gp->file.size))
     {
         EPrint("Resource name beyond file bounds!\n");
         return -1;
