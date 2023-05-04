@@ -28,16 +28,23 @@ int checkBytes(const unsigned char* bytes, const uint8_t size, const unsigned ch
  */
 void expandFilePath(const char* src, char* dest)
 {
-    if ( strlen(src) == 0 ) return;
-
-#if defined(_LINUX)
     const char* env_home;
-    if ( src[0] == '~' )
+
+    if ( !src || src[0] == 0 )
+        return;
+    size_t cch = strlen(src);
+    if ( cch >= PATH_MAX )
+        return;
+
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__APPLE__)
+    if ( src[0] == '~' && src[1] == '/' && src[2] != 0 )
     {
         env_home = getenv("HOME");
         if ( env_home != NULL )
         {
-            snprintf(dest, PATH_MAX, "%s/%s", env_home, &src[2]);
+            cch = snprintf(dest, PATH_MAX, "%s/%s", env_home, &src[2]);
+            if ( cch >= PATH_MAX )
+                snprintf(dest, PATH_MAX, "%s", src);
         }
         else
         {
@@ -49,8 +56,9 @@ void expandFilePath(const char* src, char* dest)
         char cwd[PATH_MAX] = {0};
         if ( getcwd(cwd, PATH_MAX) != NULL )
         {
-            if ( strlen(cwd) + strlen(src) + 2 < PATH_MAX )
-                sprintf(dest, "%s/%s", cwd, src);
+            cch = snprintf(dest, PATH_MAX, "%s/%s", cwd, src);
+            if ( cch >= PATH_MAX )
+                snprintf(dest, PATH_MAX, "%s", src);
         }
         else
         {

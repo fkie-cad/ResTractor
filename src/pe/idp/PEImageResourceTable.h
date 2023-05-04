@@ -98,7 +98,7 @@ void PE_saveResource(
 
 char* getFileType(
     uint8_t* buffer, 
-    uint32_t nr_bytes
+    uint32_t buffer_size
 );
 
 

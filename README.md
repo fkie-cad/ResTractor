@@ -33,8 +33,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.0.6  
-Last changed: 03.05.2023
+1.0.7  
+Last changed: 04.05.2023
 
 ## REQUIREMENTS ##
 - Linux

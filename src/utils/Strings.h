@@ -1,5 +1,5 @@
-#ifndef _STRINGS_H
-#define _STRINGS_H
+#ifndef __STRINGS_H__
+#define __STRINGS_H__
 
 #define LE (1)
 
@@ -9,26 +9,23 @@ int isInvalidChar(char c)
 {
     switch ( c )
     {
-        case ':':
-        case '!':
-        case '?':
-        case '\\':
-        case '/':
-        case '"':
-        case '\'':
-        case '`':
-        case '´':
-        case '§':
-        case '$':
-        case '%':
-        case '&':
-        case '<':
-        case '>':
-        case '|':
-        case '° ':
-        case '^':
-        case '~':
-        case '#':
+        case 0x3a: // : 
+        case 0x21 : // !
+        case 0x3f : // ?
+        case 0x5c : // bs
+        case 0x2f : // /
+        case 0x22 : // "
+        case 0x27 : // \'
+        case 0x60 : // `
+        case 0x24 : // $
+        case 0x25 : // %
+        case 0x26 : // &
+        case 0x3c : // <
+        case 0x3e : // >
+        case 0x7c : // |
+        case 0x5e : // ^
+        case 0x7e : // ~
+        case 0x23 : // #
             return 1;
         default:
             return 0;
