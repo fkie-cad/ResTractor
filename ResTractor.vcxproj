@@ -74,14 +74,14 @@
   
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);ntdll.lib;</AdditionalDependencies>
+      <AdditionalDependencies>res\lib\HeaderParser.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
     <ClCompile>
       <EnablePREfast>true</EnablePREfast>
       <ConformanceMode>true</ConformanceMode>
       <TreatWarningAsError>false</TreatWarningAsError>
       <WarningLevel>Level4</WarningLevel>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>res\inc\;%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
       <ExceptionHandling></ExceptionHandling>
       <PrecompiledHeader></PrecompiledHeader>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks> <!-- /RTC -->
@@ -92,10 +92,10 @@
       <!--<LanguageStandard>c99</LanguageStandard>-->
     </ClCompile>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>res\inc\;%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>res\inc\;%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
     </Midl>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
@@ -144,7 +144,7 @@
   </ItemDefinitionGroup>
 
   <ItemGroup Condition="'$(ConfigurationType)'=='Application'">
-    <ClCompile Include="src\resTractor.c" />
+    <ClCompile Include="src\main.c" />
     <ClCompile Include="src\utils\fifo\Fifo.c" />
   </ItemGroup>
   

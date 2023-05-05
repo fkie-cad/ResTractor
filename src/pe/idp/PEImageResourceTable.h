@@ -1,7 +1,9 @@
-#ifndef HEADER_PARSER_PE_IMAGE_RESOURCE_TABLE_H
-#define HEADER_PARSER_PE_IMAGE_RESOURCE_TABLE_H
+#ifndef RESTRACTOR_PE_IMAGE_RESOURCE_TABLE_H
+#define RESTRACTOR_PE_IMAGE_RESOURCE_TABLE_H
 
 #include "../../utils/Strings.h"
+#include "../../utils/fifo/Fifo.h"
+
 
 
 #define PE_MAX_RES_DIR_LEVEL (0x20)
@@ -25,14 +27,14 @@ typedef struct _RDI_DATA {
 size_t res_count = 0;
 size_t file_count = 0;
 
-int PE_parseImageResourceTable(
+int parseImageResourceTable(
     PE64OptHeader* oh,
     uint16_t nr_of_sections,
-    PGlobalParams gp,
+    PRTParams rtp,
     SVAS* svas
 );
 
-int PE_fillImageResourceDirectory(
+int fillImageResourceDirectory(
     PE_IMAGE_RESOURCE_DIRECTORY* rd,
     size_t offset,
     size_t start_file_offset,
@@ -41,30 +43,30 @@ int PE_fillImageResourceDirectory(
     uint8_t* block_s
 );
 
-int PE_iterateImageResourceDirectory(
+int iterateImageResourceDirectory(
     size_t offset,
     size_t table_fo,
     uint16_t nr_of_named_entries,
     uint16_t nr_of_id_entries,
     uint16_t level,
-    PGlobalParams gp,
+    PRTParams rtp,
     SVAS* svas,
     uint16_t nr_of_sections
 );
 
-int PE_parseResourceDirectoryEntryI(
+int parseResourceDirectoryEntryI(
     uint16_t id,
     size_t offset,
     size_t table_fo,
     uint16_t nr_of_entries,
     uint16_t level,
-    PGlobalParams gp,
+    PRTParams rtp,
     SVAS* svas,
     uint16_t nr_of_sections, PFifo fifo,
     PNAME res_base_name
 );
 
-int PE_fillImageResourceDirectoryEntry(
+int fillImageResourceDirectoryEntry(
     PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
     size_t offset,
     size_t start_file_offset,
@@ -73,7 +75,7 @@ int PE_fillImageResourceDirectoryEntry(
     uint8_t* block_s
 );
 
-int PE_fillImageResourceDataEntry(
+int fillImageResourceDataEntry(
     PE_IMAGE_RESOURCE_DATA_ENTRY* de,
     size_t offset,
     size_t start_file_offset,
@@ -82,17 +84,17 @@ int PE_fillImageResourceDataEntry(
     uint8_t* block_s
 );
 
-int PE_getResName(
+int getResName(
     const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
     size_t table_fo,
-    PGlobalParams gp,
+    PRTParams rtp,
     PE_IMAGE_RESOURCE_DIR_STRING_U_PTR* name
 );
 
-void PE_saveResource(
+void saveResource(
     const PE_IMAGE_RESOURCE_DATA_ENTRY* de, 
     uint32_t fo, 
-    PGlobalParams gp,
+    PRTParams rtp,
     PNAME res_base_name
 );
 
@@ -108,10 +110,10 @@ char* getFileType(
  * @param oh
  * @param nr_of_sections
  */
-int PE_parseImageResourceTable(
+int parseImageResourceTable(
     PE64OptHeader* oh,
     uint16_t nr_of_sections,
-    PGlobalParams gp,
+    PRTParams rtp,
     SVAS* svas
 )
 {
@@ -119,11 +121,11 @@ int PE_parseImageResourceTable(
     size_t table_fo;
     int s = 0;
     
-    size_t start_file_offset = gp->file.start_offset;
-    size_t file_size = gp->file.size;
-    FILE* fp = gp->file.handle;
+    size_t start_file_offset = rtp->file.start_offset;
+    size_t file_size = rtp->file.size;
+    FILE* fp = rtp->file.handle;
     
-    uint8_t* block_s = gp->data.block_sub;
+    uint8_t* block_s = rtp->data.block_sub;
 
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_RESOURCE )
     {
@@ -139,20 +141,20 @@ int PE_parseImageResourceTable(
     }
 
     // fill root PE_IMAGE_RESOURCE_DIRECTORY info
-    s = PE_fillImageResourceDirectory(&rd, table_fo, start_file_offset, file_size, fp, block_s);
+    s = fillImageResourceDirectory(&rd, table_fo, start_file_offset, file_size, fp, block_s);
     if ( s != 0 )
         return s;
 
-    if ( gp->flags&FLAG_PRINT )
-        PE_printImageResourceDirectory(&rd, 0);
+    if ( rtp->flags&FLAG_PRINT )
+        PE_printImageResourceDirectory(&rd, rtp->offset, 0);
 
-    s = PE_iterateImageResourceDirectory(
+    s = iterateImageResourceDirectory(
         table_fo + PE_RESOURCE_DIRECTORY_SIZE,
         table_fo,
         rd.NumberOfNamedEntries,
         rd.NumberOfIdEntries, 
         0,
-        gp,
+        rtp,
         svas, 
         nr_of_sections
     );
@@ -163,7 +165,7 @@ int PE_parseImageResourceTable(
     return s;
 }
 
-int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
+int fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
                                   size_t offset,
                                   size_t start_file_offset,
                                   size_t file_size,
@@ -199,7 +201,7 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
     return 0;
 }
 
-int PE_fillImageResourceDirectoryEntry(
+int fillImageResourceDirectoryEntry(
     PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
     size_t offset,
     size_t start_file_offset,
@@ -229,7 +231,7 @@ int PE_fillImageResourceDirectoryEntry(
     return 0;
 }
 
-int PE_fillImageResourceDataEntry(PE_IMAGE_RESOURCE_DATA_ENTRY* de,
+int fillImageResourceDataEntry(PE_IMAGE_RESOURCE_DATA_ENTRY* de,
                                   size_t offset,
                                   size_t start_file_offset,
                                   size_t file_size,
@@ -258,13 +260,13 @@ int PE_fillImageResourceDataEntry(PE_IMAGE_RESOURCE_DATA_ENTRY* de,
     return 0;
 }
 
-int PE_iterateImageResourceDirectory(
+int iterateImageResourceDirectory(
     size_t offset,
     size_t table_fo,
     uint16_t nr_of_named_entries,
     uint16_t nr_of_id_entries,
     uint16_t level,
-    PGlobalParams gp,
+    PRTParams rtp,
     SVAS* svas,
     uint16_t nr_of_sections
 )
@@ -302,24 +304,24 @@ int PE_iterateImageResourceDirectory(
         //printf("act.name->MaxSize: 0x%x\n", act->ResName.MaxSize);
         //printf("act.name->Buffer: %s (%p)\n", act->ResName.Buffer, act->ResName.Buffer);
         
-        if ( gp->flags&FLAG_PRINT )
+        if ( rtp->flags&FLAG_PRINT )
             PE_printImageResourceDirectoryEntryHeader(0, nr_of_named_entries, level);
 
         for ( i = 0; i < nr_of_named_entries; i++ )
         {
-            s = PE_parseResourceDirectoryEntryI(i, offset, table_fo, nr_of_named_entries, level, gp, svas, nr_of_sections, &fifo, &act->ResName);
+            s = parseResourceDirectoryEntryI(i, offset, table_fo, nr_of_named_entries, level, rtp, svas, nr_of_sections, &fifo, &act->ResName);
             if ( s != 0 )
                 continue;
 
             offset += PE_RESOURCE_ENTRY_SIZE;
         }
         
-        if ( gp->flags&FLAG_PRINT )
+        if ( rtp->flags&FLAG_PRINT )
             PE_printImageResourceDirectoryEntryHeader(1, nr_of_id_entries, level);
 
         for ( i = 0; i < nr_of_id_entries; i++ )
         {
-            s = PE_parseResourceDirectoryEntryI(i, offset, table_fo, nr_of_id_entries, level, gp, svas, nr_of_sections, &fifo, &act->ResName);
+            s = parseResourceDirectoryEntryI(i, offset, table_fo, nr_of_id_entries, level, rtp, svas, nr_of_sections, &fifo, &act->ResName);
             if ( s != 0 )
                 continue;
 
@@ -332,13 +334,13 @@ int PE_iterateImageResourceDirectory(
     return 0;
 }
 
-int PE_parseResourceDirectoryEntryI(
+int parseResourceDirectoryEntryI(
     uint16_t id,
     size_t offset,
     size_t table_fo,
     uint16_t nr_of_entries,
     uint16_t level,
-    PGlobalParams gp,
+    PRTParams rtp,
     SVAS* svas,
     uint16_t nr_of_sections,
     PFifo fifo,
@@ -355,26 +357,26 @@ int PE_parseResourceDirectoryEntryI(
     uint32_t dir_offset = 0;
     uint32_t fotd;
     
-    size_t start_file_offset = gp->file.start_offset;
-    size_t file_size = gp->file.size; 
-    FILE* fp = gp->file.handle; 
-    uint8_t* block_s = gp->data.block_sub;
+    size_t start_file_offset = rtp->file.start_offset;
+    size_t file_size = rtp->file.size; 
+    FILE* fp = rtp->file.handle; 
+    uint8_t* block_s = rtp->data.block_sub;
 
     (id);(nr_of_entries);
 
-    PE_fillImageResourceDirectoryEntry(&re, offset, start_file_offset, file_size, fp, block_s);
-    if ( gp->flags&FLAG_PRINT )
-        PE_printImageResourceDirectoryEntry(&re, table_fo, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
+    fillImageResourceDirectoryEntry(&re, offset, start_file_offset, file_size, fp, block_s);
+    if ( rtp->flags&FLAG_PRINT )
+        PE_printImageResourceDirectoryEntry(&re, table_fo, rtp->offset, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
     
     memset(&rdid, 0, sizeof(rdid));
     rdid.ResName.Length = res_base_name->Length;
     rdid.ResName.MaxSize = res_base_name->MaxSize;
     if ( re.NAME_UNION.NAME_STRUCT.NameIsString )
     {
-        s = PE_getResName(
+        s = getResName(
                 &re, 
                 table_fo, 
-                gp,
+                rtp,
                 &name
             );
         if ( s != 0 )
@@ -422,12 +424,12 @@ int PE_parseResourceDirectoryEntryI(
 
     if ( re.OFFSET_UNION.DATA_STRUCT.DataIsDirectory )
     {
-        s = PE_fillImageResourceDirectory(&rd, dir_offset, start_file_offset, file_size, fp, block_s);
+        s = fillImageResourceDirectory(&rd, dir_offset, start_file_offset, file_size, fp, block_s);
         if ( s != 0 )
             return 1;
 
-        if ( gp->flags&FLAG_PRINT )
-            PE_printImageResourceDirectory(&rd, level+1);
+        if ( rtp->flags&FLAG_PRINT )
+            PE_printImageResourceDirectory(&rd, rtp->offset, level+1);
 
         rdid.Offset = (size_t)dir_offset + PE_RESOURCE_DIRECTORY_SIZE;
         rdid.NumberOfNamedEntries = rd.NumberOfNamedEntries;
@@ -438,29 +440,29 @@ int PE_parseResourceDirectoryEntryI(
     }
     else
     {
-        s = PE_fillImageResourceDataEntry(&de, dir_offset, start_file_offset, file_size, fp, block_s);
+        s = fillImageResourceDataEntry(&de, dir_offset, start_file_offset, file_size, fp, block_s);
         if ( s != 0 ) 
             return s;
         fotd = (uint32_t)PE_Rva2Foa(de.OffsetToData, svas, nr_of_sections);
         fotd += (uint32_t)start_file_offset;
 
-        if ( gp->flags&FLAG_PRINT )
-            PE_printImageResourceDataEntry(&de, fotd, level);
+        if ( rtp->flags&FLAG_PRINT )
+            PE_printImageResourceDataEntry(&de, fotd, rtp->offset, level);
         
         res_count++;
 
         //printf("final res base name: %s\n", rdid.ResName.Buffer);
-        if ( gp->outDir )
-            PE_saveResource(&de, fotd, gp, &rdid.ResName);
+        if ( rtp->out_dir )
+            saveResource(&de, fotd, rtp, &rdid.ResName);
     }
 
     return 0;
 }
 
-int PE_getResName(
+int getResName(
     const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
     size_t table_fo,
-    PGlobalParams gp,
+    PRTParams rtp,
     PE_IMAGE_RESOURCE_DIR_STRING_U_PTR* name
 )
 {
@@ -473,18 +475,18 @@ int PE_getResName(
     memset(name, 0, sizeof(*name));
 
     name_offset = table_fo + re->NAME_UNION.NAME_STRUCT.NameOffset;
-    if ( !checkFileSpace(name_offset, gp->file.start_offset, 4, gp->file.size) )
+    if ( !checkFileSpace(name_offset, rtp->file.start_offset, 4, rtp->file.size) )
     {
         EPrint("Resource name offset beyond file bounds!\n");
         return -1;
     }
 
-    name_offset = name_offset + gp->file.start_offset;
-    bytes_read = readFile(gp->file.handle, (size_t)name_offset, BLOCKSIZE_SMALL, gp->data.block_sub);
+    name_offset = name_offset + rtp->file.start_offset;
+    bytes_read = readFile(rtp->file.handle, (size_t)name_offset, BLOCKSIZE_SMALL, rtp->data.block_sub);
     if ( bytes_read <= 4 )
         return -1;
 
-    ptr = gp->data.block_sub;
+    ptr = rtp->data.block_sub;
     name->Length = GetIntXValueAtOffset(uint16_t, ptr, name_offsets->Length);
     name->NameString = ((uint16_t*) &ptr[name_offsets->NameString]);
     if ( name->Length > (uint16_t)bytes_read - 4 ) // minus length - L'0'
@@ -492,7 +494,7 @@ int PE_getResName(
     ptr[bytes_read-2] = 0;
     ptr[bytes_read-1] = 0;
 
-    if ( !checkFileSpace(name_offset, gp->file.start_offset, name_offsets->Length+name->Length, gp->file.size))
+    if ( !checkFileSpace(name_offset, rtp->file.start_offset, name_offsets->Length+name->Length, rtp->file.size))
     {
         EPrint("Resource name beyond file bounds!\n");
         return -1;
@@ -501,15 +503,15 @@ int PE_getResName(
     return 0;
 }
 
-void PE_saveResource(
+void saveResource(
     const PE_IMAGE_RESOURCE_DATA_ENTRY* de, 
     uint32_t fo, 
-    PGlobalParams gp,
+    PRTParams rtp,
     PNAME res_base_name
 )
 {
-    uint8_t* buffer = gp->data.block_main;
-    uint32_t buffer_size = gp->data.block_main_size;
+    uint8_t* buffer = rtp->data.block_main;
+    uint32_t buffer_size = rtp->data.block_main_size;
     uint32_t i;
     uint32_t parts;
     uint32_t rest;
@@ -524,13 +526,13 @@ void PE_saveResource(
     DPrint("  fo: 0x%x\n", fo);
     DPrint("  Size: 0x%x\n", de->Size);
 
-    if ( fo > gp->file.size || fo + de->Size > gp->file.size )
+    if ( fo > rtp->file.size || fo + de->Size > rtp->file.size )
     {
         EPrint("Resource data invalid!\n");
         return;
     }
     
-    nr_bytes = readFile(gp->file.handle, fo, buffer_size, buffer);
+    nr_bytes = readFile(rtp->file.handle, fo, buffer_size, buffer);
     if ( !nr_bytes )
     {
         EPrint("Reading resource failed.\n");
@@ -539,7 +541,7 @@ void PE_saveResource(
     file_type = getFileType(buffer, (uint32_t)nr_bytes);
     DPrint("file_type: %s\n", file_type);
 
-    path_cb = strlen(gp->outDir) + 1 + res_base_name->Length + strlen(file_type);
+    path_cb = strlen(rtp->out_dir) + 1 + res_base_name->Length + strlen(file_type);
     path_buffer_size = path_cb + 1 + 17; // terminating 0 + possible duplication index : ~ + sizeof(uint64)*2
     path = (char*)malloc(path_buffer_size);
     if ( !path )
@@ -548,7 +550,7 @@ void PE_saveResource(
         return;
     }
 
-    sprintf(path, "%s%c%s%s", gp->outDir, PATH_SEPARATOR, res_base_name->Buffer, file_type);
+    sprintf(path, "%s%c%s%s", rtp->out_dir, PATH_SEPARATOR, res_base_name->Buffer, file_type);
     
     // check if file exists
     size_t index = 0;
@@ -582,7 +584,7 @@ void PE_saveResource(
 
     for ( i = 0; i < parts; i++ )
     {
-        nr_bytes = readFile(gp->file.handle, fo, buffer_size, buffer);
+        nr_bytes = readFile(rtp->file.handle, fo, buffer_size, buffer);
         if ( !nr_bytes )
         {
             EPrint("Reading resource failed.\n");
@@ -602,7 +604,7 @@ void PE_saveResource(
 
     if ( rest > 0 )
     {
-        nr_bytes = readFile(gp->file.handle, fo, rest, buffer);
+        nr_bytes = readFile(rtp->file.handle, fo, rest, buffer);
         if ( !nr_bytes )
         {
             EPrint("Reading resource failed.\n");

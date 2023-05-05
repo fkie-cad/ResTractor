@@ -9,18 +9,32 @@
 #include <wchar.h>
 
 
-const uint8_t MAGIC_PE_ARCHIV_BYTES[] = { 0x21, 0x3C, 0x61, 0x72, 0x63, 0x68, 0x3E };
-#define MAGIC_PE_ARCHIV_BYTES_LN (sizeof(MAGIC_PE_ARCHIV_BYTES))
+#define MAGIC_PE_ARCHIV_BYTES_LN (7)
+extern const uint8_t MAGIC_PE_ARCHIV_BYTES[MAGIC_PE_ARCHIV_BYTES_LN];
 
-const uint8_t MAGIC_PE_BYTES[2] = { 0x4D, 0x5A };
-const uint8_t MAGIC_PE_SIGNATURE[4] = { 0x50, 0x45, 0x00, 0x00 };
-const uint8_t MAGIC_NE_SIGNATURE[2] = { 0x4E, 0x45 };
-const uint8_t MAGIC_LE_SIGNATURE[2] = { 0x4C, 0x45 };
-const uint8_t MAGIC_LX_SIGNATURE[2] = { 0x4C, 0x58 };
-//const uint8_t MAGIC_NE_SIGNATURE[4] = { 0x4E, 0x45, 0x05, 0x3C };
-//const uint8_t MAGIC_NE_SIGNATURE[4] = { 0x4E, 0x45, 0x06, 0x01 };
-const uint8_t MAGIC_DOS_STUB_BEGINNING[] = { 0xB4, 0x09, 0xCD, 0x21, 0xB8, 0x01, 0x4C, 0xCD, 0x21 };
+#define MAGIC_PE_BYTES_LN (2)
+extern const uint8_t MAGIC_PE_BYTES[MAGIC_PE_BYTES_LN];
+
+#define MAGIC_PE_SIGNATURE_LN (4)
+extern const uint8_t MAGIC_PE_SIGNATURE[MAGIC_PE_SIGNATURE_LN];
+
+#define MAGIC_NE_SIGNATURE_LN (2)
+extern const uint8_t MAGIC_NE_SIGNATURE[MAGIC_NE_SIGNATURE_LN];
+
+#define MAGIC_LE_SIGNATURE_LN (2)
+extern const uint8_t MAGIC_LE_SIGNATURE[MAGIC_LE_SIGNATURE_LN];
+
+#define MAGIC_LX_SIGNATURE_LN (2)
+extern const uint8_t MAGIC_LX_SIGNATURE[MAGIC_LX_SIGNATURE_LN];
+
+//#define MAGIC_NE_SIGNATURE_LN (4)
+//extern const uint8_t MAGIC_NE_SIGNATURE[MAGIC_NE_SIGNATURE_LN];
+
+//#define MAGIC_NE_SIGNATURE_LN (4)
+//extern const uint8_t MAGIC_NE_SIGNATURE[MAGIC_NE_SIGNATURE_LN];
+
 #define MAGIC_DOS_STUB_BEGINNING_LN (9)
+extern const uint8_t MAGIC_DOS_STUB_BEGINNING[MAGIC_DOS_STUB_BEGINNING_LN];
 
 #define PE_DOS_STUB_OFFSET (0x45)
 
@@ -32,7 +46,7 @@ const uint8_t MAGIC_DOS_STUB_BEGINNING[] = { 0xB4, 0x09, 0xCD, 0x21, 0xB8, 0x01,
 #endif
 
 enum PEHeaderSizes {
-    MAGIC_PE_BYTES_LN=2,
+    //MAGIC_PE_BYTES_LN=2,
     SIZE_OF_MAGIC_PE_SIGNATURE=4,
     SIZE_OF_MAGIC_NE_SIGNATURE=2,
     SIZE_OF_MAGIC_LE_SIGNATURE=2,
@@ -139,24 +153,8 @@ enum ImageDirectoryEntries {
     IMAGE_DIRECTORY_ENTRY_RESERVED, // 15
 };
 
-const char* ImageDirectoryEntryNames[] = {
-    "EXPORT",
-    "IMPORT",
-    "RESOURCE",
-    "EXCEPTION",
-    "CERTIFICATE",
-    "BASE_RELOC",
-    "DEBUG",
-    "ARCHITECTURE",
-    "GLOBAL_PTR",
-    "TLS",
-    "LOAD_CONFIG",
-    "BOUND_IMPORT",
-    "IAT",
-    "DELAY_IMPORT",
-    "CLR_RUNTIME_HEADER",
-    "RESERVED",
-};
+#define IMAGE_DIRECTORY_ENTRY_NAMES_LN (0x10)
+extern const char* ImageDirectoryEntryNames[IMAGE_DIRECTORY_ENTRY_NAMES_LN];
 
 /**
  * 64 bit version of the PE Optional Header also known as IMAGE_OPTIONAL_HEADER64
@@ -395,10 +393,9 @@ typedef struct PE_IMAGE_EXPORT_DIRECTORY
     uint32_t Base;
     // The number of elements in the AddressOfFunctions array.
     // This value is also the number of functions exported by this module.
-    // Theoretically, this value could be different than the NumberOfNames field (next), but actually they're always the same.
+    // This value can be different than the NumberOfNames field (i.e. ntoskrnl.exe). Mostly they're the same, though.
     uint32_t NumberOfFunctions;
     // The number of elements in the AddressOfNames array.
-    // This value seems always to be identical to the NumberOfFunctions field, and so is the number of exported functions.
     uint32_t NumberOfNames;
     // The address of the export address table, relative to the image base.
     // This field is an RVA and points to an array of function addresses.
@@ -432,7 +429,7 @@ typedef struct PE_EXPORT_ADDRESS_TABLE_ENTRY
         // This string gives the DLL name and the name of the export (for example, "MYDLL.expfunc") or the DLL name and the ordinal number of the export (for example, "MYDLL.#27").
         uint32_t ForwarderRva;
     } rva;
-}PE_EXPORT_ADDRESS_TABLE_ENTRY, *PPE_EXPORT_ADDRESS_TABLE_ENTRY;
+} PE_EXPORT_ADDRESS_TABLE_ENTRY, *PPE_EXPORT_ADDRESS_TABLE_ENTRY;
 
 
 
@@ -1117,11 +1114,12 @@ typedef struct _StringTable {
     uint32_t size;
 } StringTable, *PStringTable;
 
+// section addresses and sizes used for offset calculation
 typedef struct _SVAS {
     uint32_t VirtualAddress;
     uint32_t VirtualSize;
     uint32_t PointerToRawData;
     uint32_t SizeOfRawData;
-} SVAS, PSVAS;
+} SVAS, *PSVAS;
 
 #endif

@@ -3,6 +3,7 @@ setlocal
 
 set my_name=%~n0
 set my_dir="%~dp0"
+set "my_dir=%my_dir:~1,-2%"
 
 set name=ResTractor
 
@@ -176,7 +177,8 @@ GOTO :ParseParams
     
     :: build targets
     if %cln% == 1 (
-        rmdir /s /q build
+        echo removing "%my_dir%\build"
+        rmdir /s /q "%my_dir%\build" >nul 2>&1 
     )
     if %exe% == 1 (
         call :build %name%.vcxproj Application
