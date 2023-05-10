@@ -22,7 +22,7 @@ updateBin.bat
 
 tests/__pycache__/
 
-res/lib/HeaderParser.lib
+res/lib/
 
 
 

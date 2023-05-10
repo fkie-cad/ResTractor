@@ -1,7 +1,6 @@
 #ifndef HEADER_PARSER_PE_HEADER_DATA_H
 #define HEADER_PARSER_PE_HEADER_DATA_H
 
-#include "HeaderData.h"
 #include "pe/PEHeader.h"
 
 typedef struct PEHeaderData

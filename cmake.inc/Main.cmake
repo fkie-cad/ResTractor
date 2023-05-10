@@ -1,9 +1,11 @@
-set(EXE resTractor)
+set(APP resTractor)
 add_executable(
-	${EXE}
-	src/resTractor.c
-	src/utils/fifo/Fifo.c
+	${APP}
+	src/main.c
 	)
-target_sources(${EXE} PRIVATE
-	${EXE_SRC}
+target_sources(${APP} PRIVATE
+	${APP_SRC}
+	)
+target_link_libraries(${APP} PRIVATE
+	${HEADER_PARSER_ST}
 	)

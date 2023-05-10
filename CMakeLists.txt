@@ -36,6 +36,10 @@ message("CMAKE_C_FLAGS_DEBUG : ${CMAKE_C_FLAGS_DEBUG}")
 message("CMAKE_C_FLAGS_RELEASE : ${CMAKE_C_FLAGS_RELEASE}")
 message("CMAKE_FLAGS_RELEASE : ${CMAKE_FLAGS_RELEASE}")
 message("CMAKE_EXE_LINKER_FLAGS : ${CMAKE_EXE_LINKER_FLAGS}")
+message("CMAKE_CURRENT_SOURCE_DIR : ${CMAKE_CURRENT_SOURCE_DIR}")
 
+include_directories(res/inc)
+
+include(cmake.inc/Libs.cmake)
 include(cmake.inc/Sources.cmake)
 include(cmake.inc/Main.cmake)

@@ -6,6 +6,8 @@
 
 #ifdef _WIN32
 #include "warnings.h"
+#else
+#include "errno.h"
 #endif
 #include "Args.h"
 
@@ -22,8 +24,8 @@
 
 
 #define BIN_NAME "ResTractor"
-#define BIN_VS "1.1.0"
-#define BIN_DATE "05.05.2023"
+#define BIN_VS "1.1.1"
+#define BIN_DATE "10.05.2023"
 
 
 
@@ -57,7 +59,6 @@ int cleanRtp(
 int main(int argc, char** argv)
 {
     int s = 0;
-    int errsv;
 
     size_t offset = 0;
     
@@ -206,18 +207,18 @@ int parseArgs(int argc, char** argv, PCmdParams Params)
 
         if ( IS_1C_ARG(arg, 'o') )
         {
-            BREAK_ON_NOT_A_VALUE(val1, s, "ERROR: out dir set!\n");
-            
+            BREAK_ON_NOT_A_VALUE(val1, s, "ERROR: No out dir set!\n");
+
             Params->out_dir = val1;
             cropTrailingSlash((char*)Params->out_dir);
             
             i++;
         }
-        if ( IS_1C_ARG(arg, 'p') )
+        else if ( IS_1C_ARG(arg, 'p') )
         {
             Params->flags |= FLAG_PRINT;
         }
-        else if ( !IS_PARAM(arg) )
+        else if ( IS_VALUE(arg) )
         {
             expandFilePath(arg, Params->file_name);
         }
@@ -268,6 +269,7 @@ void printVersion()
 {
     printf("Version: %s\n", BIN_VS);
     printf("Last changed: %s\n", BIN_DATE);
+    printf("Build date: %s %s\n", __DATE__, __TIME__);
 }
 
 void printUsage()
