@@ -12,15 +12,14 @@ Some types are recognized and will be given a different type.
 - MCSV files are typed `.mcsv`.
 - PE files are typed `.pe`. Could possibly .exe, .sys, dll.
 - PNG files are typed `.png`
-- <STYLE> files are typed `.style`
+- \<STYLE\> files are typed `.style`
 - VS Version Info files are typed `.vsi`
 - WAVE files are typed `.wav`
 - Windows event tempate files are typed `.wevt`
 - XML files are typed `.xml`
 - Default type is `.res`
 
-The source is deduced from the famous `HeaderParser`.
-Some more cleaning may be done sometime.
+It uses the famous `HeaderParser` included as a static lib.
 
 
 POSIX compliant.  
@@ -33,26 +32,32 @@ Compiles and runs under
 
 
 ## Version ##
-1.1.0  
-Last changed: 05.05.2023
+1.1.1  
+Last changed: 10.05.2023
 
 ## REQUIREMENTS ##
 - Linux
    - Gcc
    - Building with cmake requires cmake.
+   - a static libheaderparser.a in `res\lib\libheaderparser.a`
 - Windows
    - msbuild
+   - a static headerParser.lib in `res\lib\headerParser.lib`
 
 ## BUILD ##
 ### Linux (gcc) & cmake
 ```bash
-$ ./linuxBuild.sh [-t exe] [-m Release|Debug] [-h]  
+$ ./linuxBuild.sh [-t app] [-m Release|Debug] [-h]  
 ```
+This will build `libheaderparser.a` automatically, if not present.
+The cloning process requires an active internet connection, though.
 
 ### Linux (gcc)
+Compile a static headerparser library and put it into `res/lib/libheaderparser.a` and make sure the `res\inc` files are present and up to date.
 ```bash
+$ copy src/print.h res/inc
 $ mkdir build
-$ gcc -o build/resTractor -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/resTractor.c  
+$ gcc -o build/resTractor -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/main.c src/utils/fifo/Fifo.c res/lib/libheaderparser.a -Ires/inc
 ```
 
 Use `clang` instead of `gcc` in Termux on Android.
@@ -62,6 +67,8 @@ Use `clang` instead of `gcc` in Termux on Android.
 $ winBuild.bat [/exe] [/m <Release|Debug>] [/b <32|64>] [/rtl] [/pdb] [/bt <path>] [/pts <PlatformToolset>] [/h]
 ```
 This will run in a normal cmd.  
+It will build `headerParser.lib` automatically, if not present.
+The cloning process requires an active internet connection, though.
 
 The correct path to your build tools may be passed  with the `/bt` parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
 
@@ -72,6 +79,7 @@ In a developer cmd you can also type:
 ```bash
 $devcmd> msbuild ResTractor.vcxproj /p:Configuration=<Release|Debug> /p:Platform=<x64|x86> [/p:PlatformToolset=<v142|v143>]
 ```
+But you have to build a `res/lib/headerParser.lib` on your own.
 
 ### Runtime Errors (Windows)
 If a "VCRUNTIMExxx.dll not found Error" occurs on the target system, statically including runtime libs is a solution.  
@@ -92,6 +100,7 @@ Options:
 ```bash
 $ ResTractor C:\Windows\System32\mspaint.exe -o %tmp%
 ```
+Saves all found resources of `mspaint.exe` into `%tmp%`.
 
 #### Author ####
 - Henning Braun ([henning.braun@fkie.fraunhofer.de](henning.braun@fkie.fraunhofer.de)) 

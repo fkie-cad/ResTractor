@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 set my_name=%~n0
 set my_dir="%~dp0"
@@ -8,6 +8,7 @@ set "my_dir=%my_dir:~1,-2%"
 set name=ResTractor
 
 set /a exe=0
+set /a hp=0
 set /a cln=0
 
 set /a bitness=64
@@ -23,8 +24,11 @@ set /a dp=%EP_FLAG%
 set /a pdb=0
 set verbose=0
 
+set hp_lib=%my_dir%\res\lib\HeaderParser.lib
+set "getHpBat=%my_dir%\scripts\getHp.bat"
+
 :: adjust this path, if you're using another version or path.
-set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\"
+set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools"
 set pts=v142
 
 
@@ -45,13 +49,17 @@ GOTO :ParseParams
         SET /a exe=1
         goto reParseParams
     )
+    IF /i "%~1"=="/hp" (
+        SET /a hp=1
+        goto reParseParams
+    )
     IF /i "%~1"=="/cln" (
         SET /a cln=1
         goto reParseParams
     )
 
     IF /i "%~1"=="/b" (
-        SET /a bitness=%~2
+        SET /a bitness="%~2"
         SHIFT
         goto reParseParams
     )
@@ -64,12 +72,12 @@ GOTO :ParseParams
         goto reParseParams
     )
     IF /i "%~1"=="/bt" (
-        SET buildTools=%~2
+        SET buildTools="%~2"
         SHIFT
         goto reParseParams
     )
     IF /i "%~1"=="/pts" (
-        SET pts=%~2
+        SET pts="%~2"
         SHIFT
         goto reParseParams
     )
@@ -82,7 +90,7 @@ GOTO :ParseParams
         goto reParseParams
     )
     IF /i "%~1"=="/dp" (
-        SET /a dp=%~2
+        SET /a dp="%~2"
         SHIFT
         goto reParseParams
     )
@@ -118,9 +126,9 @@ GOTO :ParseParams
     if %valid% == 0 (
         goto help
     )
-
+    
     :: test valid targets
-    set /a "valid=%exe%+%cln%"
+    set /a "valid=%exe%+%hp%+%cln%"
     if %valid% == 0 (
         set /a exe=1
     )
@@ -134,6 +142,9 @@ GOTO :ParseParams
         set /a release=1
     )
 
+    IF NOT EXIST %hp_lib% (
+        set /a hp=1
+    )
 
     :: set runtime lib
     set rtlib=No
@@ -153,6 +164,7 @@ GOTO :ParseParams
     :: verbose print
     if %verbose% == 1 (
         echo exe=%exe%
+        echo hp=%hp%
         echo bitness=%bitness%
         echo platform=%platform%
         echo debug=%debug%
@@ -161,6 +173,7 @@ GOTO :ParseParams
         echo rtlib=%rtlib%
         echo pts=%pts%
         echo dp=%dp%
+        echo pdb=%pdb%
     )
 
     :: set vcvars, if necessary
@@ -180,6 +193,22 @@ GOTO :ParseParams
         echo removing "%my_dir%\build"
         rmdir /s /q "%my_dir%\build" >nul 2>&1 
     )
+    if %hp% == 1 (
+        if %release% == 1 ( set hp_r=/r ) else ( set hp_r= )
+        if %debug% == 1 ( set hp_d=/d ) else ( set hp_d= )
+        if %verbose% == 1 ( set hp_v=/v ) else ( set hp_v= )
+        if %cln% == 1 ( set hp_cln=/cln ) else ( set hp_cln= )
+        if %pdb% == 1 ( set hp_pdb=/pdb ) else ( set hp_pdb= )
+        if %rtl% == 1 ( set hp_rtl=/rtl ) else ( set hp_rtl= )
+        
+        cmd /k "%getHpBat% /dp %dp% !hp_r! !hp_d! !hp_v! !hp_pdb! !hp_rtl! !hp_cln! /b %bitness% /bt "!buildTools:~1,-1!" /pts %pts% & exit /b !errorlevel!"
+        echo errorcode : !errorlevel!
+        if not !errorlevel! == 0 (
+            echo [e] Building headerParser.lib failed! ^(!errorlevel!^)
+            exit /b !errorlevel!
+
+        )
+    ) 
     if %exe% == 1 (
         call :build %name%.vcxproj Application
     ) 
@@ -212,7 +241,7 @@ GOTO :ParseParams
 
 
 :usage
-    echo Usage: %my_name% [/exe] [/b ^<bitness^>] [/m ^<mode^>] [/rtl] [/dp ^<value^>] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/v] [/h]
+    echo Usage: %my_name% [/exe] [/hp] [/b ^<bitness^>] [/m ^<mode^>] [/rtl] [/dp ^<value^>] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/v] [/h]
     echo Default: %my_name% [/exe /b %bitness% /m %mode% /pts %pts% /bt %buildTools%]
     exit /B 0
     
@@ -221,6 +250,7 @@ GOTO :ParseParams
     echo.
     echo Targets:
     echo /exe Build ResTractor.exe application.
+    echo /hp Build HeaderParser.lib. Will be build automatically, if not found in res\lib.
     echo.
     echo Options:
     echo /b Target bitness: 32^|64. Default: 64.

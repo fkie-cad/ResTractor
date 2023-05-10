@@ -23,6 +23,7 @@ updateBin.bat
 tests/__pycache__/
 
 res/lib/
+res/inc/print.h
 
 
 
