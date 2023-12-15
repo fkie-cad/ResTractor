@@ -234,7 +234,7 @@ setlocal
     if %pdb% == 1 ( set pdb=/pdb ) else ( set pdb= )
     if %rtl% == 1 ( set rtl=/rtl ) else ( set rtl= )
     
-    cmd /k "%build_cmd% /dp %dp% /lib !r! !d! !v! !pdb! !rtl! !cln! /b %bitness% /bt "%buildTools:~1,-1%" /pts %pts% & exit"
+    cmd /k "%build_cmd% /dp %dp% /lib !r! !d! !v! !pdb! !rtl! !cln! /b %bitness% /bt "%buildTools:~1,-1%" /pts %pts% & exit /b %errorlevel%"
     if not %errorlevel% EQU 0 (
         echo [e] building %bin_name%%bin_ext% failed!
         goto build_end

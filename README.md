@@ -103,4 +103,4 @@ $ ResTractor C:\Windows\System32\mspaint.exe -o %tmp%
 Saves all found resources of `mspaint.exe` into `%tmp%`.
 
 #### Author ####
-- Henning Braun ([henning.braun@fkie.fraunhofer.de](henning.braun@fkie.fraunhofer.de)) 
+- Henning Braun ([henning.braun@fkie.fraunhofer.de](mailto:henning.braun@fkie.fraunhofer.de)) 

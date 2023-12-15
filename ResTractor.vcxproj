@@ -74,6 +74,7 @@
   
   <ItemDefinitionGroup>
     <Link>
+      <AdditionalOptions>/GUARD:cf %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>res\lib\HeaderParser.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
     <ClCompile>
@@ -90,6 +91,7 @@
       <!--<IntrinsicFunctions>true</IntrinsicFunctions>-->
       <!--<PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>-->
       <!--<LanguageStandard>c99</LanguageStandard>-->
+      <AdditionalOptions>/GS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <AdditionalIncludeDirectories>res\inc\;%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
