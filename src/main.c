@@ -24,8 +24,8 @@
 
 
 #define BIN_NAME "ResTractor"
-#define BIN_VS "1.1.1"
-#define BIN_DATE "10.05.2023"
+#define BIN_VS "1.1.2"
+#define BIN_DATE "29.02.2024"
 
 
 
@@ -42,6 +42,9 @@ static void printHelp();
 static int parseArgs(
     int argc,
     char** argv,
+    PCmdParams Params
+);
+int checkArgs(
     PCmdParams Params
 );
 
@@ -80,6 +83,9 @@ int main(int argc, char** argv)
     }
 
     s = parseArgs(argc, argv, &params);
+    if ( s != 0 )
+        return s;
+    s = checkArgs(&params);
     if ( s != 0 )
         return s;
 
@@ -193,10 +199,11 @@ int cleanRtp(PRTParams rtp)
 
 int parseArgs(int argc, char** argv, PCmdParams Params)
 {
+    int s = 0;
+
     int start_i = 1;
     int end_i = argc;
     int i;
-    int s = 0;
     char* arg = NULL;
     char *val1 = NULL;
 
@@ -228,7 +235,13 @@ int parseArgs(int argc, char** argv, PCmdParams Params)
         }
     }
 
+    return s;
+}
 
+int checkArgs(PCmdParams Params)
+{
+    int s = 0;
+    
     if ( Params->file_name[0] == 0 )
     {
         EPrint("No file set!\n");
@@ -248,7 +261,7 @@ int parseArgs(int argc, char** argv, PCmdParams Params)
             Params->out_dir = NULL;
             s = ERROR_PATH_NOT_FOUND;
         }
-        if ( strnlen(Params->out_dir, PATH_MAX) >= PATH_MAX-20 )
+        else if ( strnlen(Params->out_dir, PATH_MAX) >= PATH_MAX-20 )
         {
             EPrint("Output directory path \"%.*s\" too long!\n", PATH_MAX, Params->out_dir);
             Params->out_dir = NULL;
@@ -261,6 +274,9 @@ int parseArgs(int argc, char** argv, PCmdParams Params)
         EPrint("No out dir or printing mode set!\n");
         s = ERROR_INVALID_PARAMETER;
     }
+#ifdef ERROR_PRINT
+    printf("\n");
+#endif
 
     return s;
 }
