@@ -69,8 +69,8 @@ int main(int argc, char** argv)
     RTParams rtp = { 0 };
     PEHeaderData* peHd = NULL;
     
-
-
+    
+    
     if ( argc < 2 )
     {
         printUsage();

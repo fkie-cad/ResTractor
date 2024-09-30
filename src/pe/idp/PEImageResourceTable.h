@@ -705,6 +705,14 @@ char* getFileType(uint8_t* buffer, uint32_t buffer_size)
     {
         return "xml";
     }
+    else if (
+              buffer_size > 0x10 
+              && *(uint64_t*)&buffer[0x00] == 0x0078003f003cfeff // ..<.?.x.
+              && *(uint64_t*)&buffer[0x08] == 0x00760020006c006d // m.l. .v.
+            )
+    {
+        return "xsl";
+    }
     else
     {
         return "res";
