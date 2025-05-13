@@ -29,7 +29,7 @@ set "getHpBat=%my_dir%\scripts\getHp.bat"
 
 :: adjust this path, if you're using another version or path.
 set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools"
-set pts=v142
+set pts=v143
 
 
 :: default
@@ -142,8 +142,10 @@ GOTO :ParseParams
         set /a release=1
     )
 
-    IF NOT EXIST %hp_lib% (
-        set /a hp=1
+    if %exe% EQU 1 (
+        IF NOT EXIST %hp_lib% (
+            set /a hp=1
+        )
     )
 
     :: set runtime lib
@@ -165,6 +167,7 @@ GOTO :ParseParams
     if %verbose% == 1 (
         echo exe=%exe%
         echo hp=%hp%
+        echo cln=%cln%
         echo bitness=%bitness%
         echo platform=%platform%
         echo debug=%debug%
@@ -187,7 +190,7 @@ GOTO :ParseParams
         )
         set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
     )
-    
+
     :: build targets
     if %cln% == 1 (
         echo removing "%my_dir%\build"

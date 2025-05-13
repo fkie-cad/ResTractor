@@ -127,13 +127,13 @@ int parseImageResourceTable(
     
     uint8_t* block_s = rtp->data.block_sub;
 
-    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_RESOURCE )
+    if ( oh->NumberOfRvaAndSizes <= IMG_DIR_ENTRY_RESOURCE )
     {
         EPrint("Data Directory too small for RESOURCE entry!\n");
         return -1;
     }
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_RESOURCE, nr_of_sections, "Resource", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMG_DIR_ENTRY_RESOURCE, nr_of_sections, "Resource", svas);
     if ( table_fo == 0 )
     {
         printf("No resource table found!\n");

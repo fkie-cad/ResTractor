@@ -24,8 +24,8 @@
 
 
 #define BIN_NAME "ResTractor"
-#define BIN_VS "1.1.2"
-#define BIN_DATE "29.02.2024"
+#define BIN_VS "1.1.3"
+#define BIN_DATE "13.05.2025"
 
 
 

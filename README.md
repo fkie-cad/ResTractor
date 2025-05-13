@@ -32,8 +32,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.1.2  
-Last changed: 29.02.2024
+1.1.3  
+Last changed: 13.05.2025
 
 ## REQUIREMENTS ##
 - Linux
